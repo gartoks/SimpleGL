@@ -113,7 +113,7 @@ public static class GraphicsHelper {
         });
     }
 
-    public static VertexArrayObject CreateVertexArrayObject(ShaderVertexAttributeResolver attributeResolver, ShaderUniformAssignmentHandler shaderUniformAssignmentHandler, Shader shader, Mesh mesh, params Texture2D[] textures) {
+    public static VertexArrayObject CreateVertexArrayObject(ShaderVertexAttributeResolver attributeResolver, ShaderUniformAssignmentHandler shaderUniformAssignmentHandler, Shader shader, Mesh mesh, params Texture[] textures) {
         int vaoId = ExecuteGLFunction(GLHandler.CreateVao);
 
         return new VertexArrayObject(vaoId, attributeResolver, shaderUniformAssignmentHandler, shader, mesh, textures);
@@ -208,7 +208,7 @@ public static class GraphicsHelper {
         }
         int layoutLocation = 0;
         sb_vert.Append($"layout(location = {layoutLocation++}) in vec3 in_position;\n");
-        sb_vert.Append($"layout(location = {layoutLocation++}) in vec3 in_color;\n");
+        sb_vert.Append($"layout(location = {layoutLocation++}) in vec4 in_color;\n");
         for (int i = 0; i < textureCount; i++) {
             sb_vert.Append($"layout(location = {layoutLocation++}) in vec2 in_texCoords{i};\n");
         }
@@ -226,7 +226,7 @@ public static class GraphicsHelper {
             sb_vert.Append($"{DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME} * {DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME} * ");
         }
         sb_vert.Append("pos;\n");
-        sb_vert.Append("\tv_color = vec4(in_color, 1.0);\n");
+        sb_vert.Append("\tv_color = in_color;\n");
         sb_vert.Append("\tv_worldPos = ");
         if (createMatrixUniforms) {
             sb_vert.Append($"{DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME} * ");

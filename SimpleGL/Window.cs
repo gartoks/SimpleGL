@@ -1,5 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Windowing.Common;
+﻿using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using System.ComponentModel;
 
@@ -41,11 +40,11 @@ public sealed class Window : GameWindow {
         base.OnKeyUp(e);
     }*/
 
-    protected override void OnResize(ResizeEventArgs e) {
+    /*protected override void OnResize(ResizeEventArgs e) {
         base.OnResize(e);
 
         GL.Viewport(0, 0, e.Width, e.Height);
-    }
+    }*/
 
     protected override void OnClosing(CancelEventArgs e) {
         if (Application.State == eApplicationState.Running) {

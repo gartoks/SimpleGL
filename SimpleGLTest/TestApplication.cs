@@ -1,9 +1,12 @@
 ﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 using SimpleGL;
 using SimpleGL.Graphics;
-using SimpleGL.Graphics.GLHandling;
+using SimpleGL.Graphics.Rendering;
+using SimpleGL.Graphics.Textures;
 using SimpleGL.Util;
 using SimpleGL.Util.Extensions;
+using StbImageSharp;
 using System.Diagnostics;
 
 namespace SimpleGLTest;
@@ -11,9 +14,14 @@ internal sealed class TestApplication : Application {
     private const int FPS = 60;
     private const int UPS = 60;
 
+    private Renderer Renderer { get; set; }
+
     private Shader Shader { get; set; }
     private Mesh Mesh { get; set; }
     private VertexArrayObject Vao { get; set; }
+    private Texture Texture { get; set; }
+
+    private Sprite Sprite { get; set; }
 
     private Matrix4 ProjectionMatrix { get; }
 
@@ -23,7 +31,7 @@ internal sealed class TestApplication : Application {
         Log.OnLog += (message, type) => Console.WriteLine($"[{type}] {message}");
         Log.OnLog += (message, type) => Debug.WriteLine($"[{type}] {message}");
 
-        ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(-5, 5, -5, 5, -1, 1);
+        ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(-5 * 16f / 9f, 5 * 16f / 9f, 5, -5, -1, 1);
     }
 
     public override void OnRenderStart() {
@@ -32,54 +40,54 @@ internal sealed class TestApplication : Application {
 
         VertexAttribute va_position = VertexAttribute.Create("position", 3);
         VertexAttribute va_color = VertexAttribute.Create("color", 4);
-        //VertexAttribute va_texCoords = VertexAttribute.Create("mainTexture_coords", 2);
-        VertexAttribute[] vertexAtributes = { va_position, va_color/*, va_texCoords*/ };
+        VertexAttribute[] vertexAtributes = { va_position, va_color };
 
-        (uint idx0, uint idx1, uint idx2)[] indices = {
-                (0, 1, 2),
-                (2, 1, 3)
-            };
+        const int VERTICES = 32;
+        Vector2[] outerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(1f * -MathF.Cos(i / (float)VERTICES * MathF.Tau), 1f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
+        Vector2[] innerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(0.5f * MathF.Cos(i / (float)VERTICES * MathF.Tau), 0.5f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
+        MeshTriangulation.Triangulate(outerVertices, new Vector2[][] { innerVertices }, out Vector2[] vertices, out (uint i0, uint i1, uint i2)[] indices);
 
-        //float[][] textureCoordinates = new float[][] { new float[] { 0, 0 }, new float[] { 1, 0 }, new float[] { 0, 1 }, new float[] { 1, 1 } };
+        using FileStream fs = new FileStream(Path.Combine("Resources", "TestTex01.png"), FileMode.Open);
+        ImageResult image = ImageResult.FromStream(fs);
+        Texture = GraphicsHelper.CreateTexture(image);
 
-        Mesh = GraphicsHelper.CreateMesh(4, vertexAtributes, indices);
-        /*VertexData va = Mesh.GetVertexData(0);
-        va.SetAttributeData(va_position, -0.5f, -0.5f, 0);
-        va.SetAttributeData(va_color, Color4.White.ToArray(true));
-        va = Mesh.GetVertexData(1);
-        va.SetAttributeData(va_position, 0.5f, -0.5f, 0);
-        va.SetAttributeData(va_color, Color4.White.ToArray(true));
-        va = Mesh.GetVertexData(2);
-        va.SetAttributeData(va_position, -0.5f, 0.5f, 0);
-        va.SetAttributeData(va_color, Color4.White.ToArray(true));*/
-
-        int i = 0;
-        for (int y = 0; y < 2; y++) {
-            for (int x = 0; x < 2; x++) {
-                VertexData va = Mesh.GetVertexData(i);
-                va.SetAttributeData(va_position, -0.5f + x, -0.5f + y, 0);
-                va.SetAttributeData(va_color, Color4.White.ToArray(true));
-                //va.SetAttributeData(va_texCoords, textureCoordinates[x + y * 2]);
-                i++;
-            }
+        Random random = new Random();
+        Mesh = GraphicsHelper.CreateMesh(vertices.Length, vertexAtributes, indices);
+        for (int i = 0; i < vertices.Length; i++) {
+            VertexData va = Mesh.GetVertexData(i);
+            va.SetAttributeData(va_position, vertices[i].X, vertices[i].Y, 0);
+            va.SetAttributeData(va_color, RndColor(random).ToArray(true));
         }
+        Vao = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, Shader, Mesh, Texture);
 
-        Vao = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, Shader, Mesh);
+        Sprite = new Sprite(Texture, Shader);
 
-
-        //GLHandler.ClockwiseCulling = true;
         Window.ClientSize = new(1920, 1080);
+        Renderer = new(new Box2i(0, 0, Window.ClientSize.X, Window.ClientSize.Y));
+        Window.Resize += Window_Resize;
+    }
+
+    private Color4 RndColor(Random random) {
+        return new Color4(random.NextSingle(), random.NextSingle(), random.NextSingle(), 1);
+    }
+
+    private void Window_Resize(ResizeEventArgs obj) {
+        Renderer.Viewport = new(0, 0, obj.Width, obj.Height);
     }
 
     public override void OnRenderStop() {
     }
 
+    private float Time = 0;
     public override void OnRender(float deltaTime) {
-        GLHandler.BeginRendering();
+        Renderer.BeginRendering(ProjectionMatrix);
+
+        Time += deltaTime;
 
         Vao.Render();
+        //Sprite.Render(Renderer);
 
-        GLHandler.EndRendering();
+        Renderer.EndRendering();
     }
 
     public override void OnUpdateStart() {
@@ -92,11 +100,13 @@ internal sealed class TestApplication : Application {
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {
-        return meshAttributes.Single(ma => shaderAttribute.Name.Split("_")[1] == ma.Name);
+        return meshAttributes.Single(ma => shaderAttribute.Name.Split("_")[1].Contains(ma.Name));
     }
 
     private void AssignShaderUniform(Shader shader, ShaderUniform uniform) {
-        if (uniform.Name.ToLowerInvariant().Contains("projection"))
+        if (uniform.Name.ToLower().Contains("tex"))
+            uniform.Set(Texture);
+        else if (uniform.Name.ToLowerInvariant().Contains("projection"))
             uniform.Set(ProjectionMatrix);
         else
             uniform.Set(Matrix4.Identity);

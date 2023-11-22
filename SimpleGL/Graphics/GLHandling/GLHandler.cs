@@ -71,7 +71,7 @@ public static partial class GLHandler {   // TODO stencil
         //ClockwiseCulling = true;
         //CullFaces(false, true);
 
-        ClearColor = Color4.Black;
+        ClearColor = Color4.DimGray;
         SetClearModes(true, true, false);
 
         AssignedTextures = new Texture[SupportedTextureUnits];
@@ -83,7 +83,7 @@ public static partial class GLHandler {   // TODO stencil
         }
     }
 
-    public static void BeginRendering() {
+    internal static void BeginRendering() {
         if (_SupportedTextureUnits == -1)
             _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureUnits);
 
@@ -98,7 +98,6 @@ public static partial class GLHandler {   // TODO stencil
         GlTaskQueue_swap.Clear();
 
         TransformStack.Clear();
-
         //GL.ClearDepth(1f);  // TODO maybe allow different values
         GL.Clear(_ClearBufferMask);
 
@@ -109,7 +108,7 @@ public static partial class GLHandler {   // TODO stencil
         IsRendering = true;
     }
 
-    public static void EndRendering() {
+    internal static void EndRendering() {
         IsRendering = false;
 
         if (BoundShader != null)

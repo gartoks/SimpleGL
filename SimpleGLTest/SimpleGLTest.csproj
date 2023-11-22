@@ -8,16 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Resources\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="OpenTK" Version="4.8.1" />
     <PackageReference Include="StbImageSharp" Version="2.27.13" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SimpleGL\SimpleGL.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\TestTex01.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

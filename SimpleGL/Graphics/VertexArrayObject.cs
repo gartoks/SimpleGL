@@ -5,7 +5,7 @@ using SimpleGL.Util;
 namespace SimpleGL.Graphics;
 public sealed class VertexArrayObject : IDisposable {
     private ShaderVertexAttributeResolver AttributeResolver { get; }
-    private ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler { get; }
+    public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler { get; set; }
 
     private Shader _Shader { get; set; }
     public Shader Shader {
@@ -45,12 +45,12 @@ public sealed class VertexArrayObject : IDisposable {
         }
     }
 
-    private Texture2D[] _Textures { get; set; }
-    public Texture2D[] Textures {
+    private Texture[] _Textures { get; set; }
+    public Texture[] Textures {
         get => _Textures;
         set {
             if (value == null)
-                value = new Texture2D[0];
+                value = new Texture[0];
 
             _Textures = value;
         }
@@ -78,7 +78,7 @@ public sealed class VertexArrayObject : IDisposable {
         ShaderUniformAssignmentHandler shaderUniformAssignmentHandler,
         Shader shader,
         Mesh mesh,
-        Texture2D[] textures) {
+        Texture[] textures) {
 
         if (attributeResolver == null) {
             Log.WriteLine($"Cannot create renderable, attributeResolver is null.");
@@ -149,7 +149,7 @@ public sealed class VertexArrayObject : IDisposable {
             GLHandler.DeleteEbo(ElementBufferObject);
             ResolvedMeshAttributes.Clear();
             foreach (ShaderVertexAttribute shaderAttribute in Shader.Attributes.Values) {
-                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes);
+                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes.Values);
                 ResolvedMeshAttributes.Add(shaderAttribute, resolvedMeshAttribute);
             }
             VertexBufferObject = GLHandler.CreateVbo(Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values), eBufferType.Dynamic);
@@ -169,7 +169,7 @@ public sealed class VertexArrayObject : IDisposable {
             GLHandler.BindVao(this);
             ResolvedMeshAttributes.Clear();
             foreach (ShaderVertexAttribute shaderAttribute in Shader.Attributes.Values) {
-                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes);
+                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes.Values);
                 ResolvedMeshAttributes.Add(shaderAttribute, resolvedMeshAttribute);
             }
             VertexBufferObject.Bind();

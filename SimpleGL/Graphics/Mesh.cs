@@ -5,7 +5,7 @@ public sealed class Mesh {
     public delegate void MeshVertexDataChangedEventHandler(Mesh mesh);
     public delegate void MeshIndicesChangedEventHandler(Mesh mesh);
 
-    public IReadOnlyList<VertexAttribute> VertexAttributes { get; }
+    public IReadOnlyDictionary<string, VertexAttribute> VertexAttributes { get; }
     public IReadOnlyList<int> Indices { get; }
 
     private VertexData[] VertexData { get; }
@@ -19,7 +19,7 @@ public sealed class Mesh {
             return;
         }
 
-        VertexAttributes = vertexAttributes;
+        VertexAttributes = vertexAttributes.ToDictionary(va => va.Name, va => va);
 
         VertexData[] vertexData = new VertexData[vertexCount];
         for (int i = 0; i < vertexCount; i++) {
@@ -78,7 +78,7 @@ public sealed class Mesh {
         }
 
         foreach (VertexAttribute att in attributesInOrder) {
-            if (!VertexAttributes.Contains(att)) {
+            if (!VertexAttributes.Values.Contains(att)) {
                 Log.WriteLine($"Invalid attribute '{att.Name}' to interleave. Attribute not found in mesh.", eLogType.Error);
                 return null;
             }
