@@ -1,21 +1,37 @@
 ﻿using OpenTK.Mathematics;
+using System.Diagnostics;
 
-namespace SimpleGL.Util;
+namespace SimpleGL.Util.Math;
 public static class MeshTriangulation {
+    public static void Triangulate(Path shape, IReadOnlyList<Path> holes, out Vector2[] newVertices, out (uint i0, uint i1, uint i2)[] triangles) {
+        //List<Path> shapes = paths.Where(p => p.IsClockwise).ToList();
+        //List<Path> holes = paths.Where(p => !p.IsClockwise).ToList();
 
-    public static void Triangulate(Vector2[] verticesInClockwiseOrder, Vector2[][] holesInCounterClockwiseOrder, out Vector2[] newVerticesInClockwiseOrder, out (uint i0, uint i1, uint i2)[] triangles) {
-        List<Vector2> vertices = new List<Vector2>(verticesInClockwiseOrder);
+        if (shape.Count == 0)
+            throw new Exception("No shapes found.");
 
-        foreach (Vector2[] holeVertices in holesInCounterClockwiseOrder)
+        if (!shape.IsClockwise)
+            throw new Exception("Shape is not clockwise.");
+
+        if (holes.Any(h => h.IsClockwise))
+            throw new Exception("Hole is clockwise.");
+
+        List<Vector2> vertices = new List<Vector2>(shape);
+        //foreach (Path shape in shapes.Skip(1))
+        //    MergeShapes(vertices, shape);
+
+        foreach (Path holeVertices in holes)
             InsertHole(vertices, holeVertices);
 
-        newVerticesInClockwiseOrder = vertices.ToArray();
+        newVertices = vertices.ToArray();
 
         if (!TryFindTriangles(vertices, out triangles))
             throw new Exception("Could not find triangles.");
     }
 
     private static bool TryFindTriangles(List<Vector2> vertices, out (uint i0, uint i1, uint i2)[] triangles) {
+        //Debug.WriteLine(string.Join("\n", vertices.Select(v => $"{v.X} {v.Y}")));
+
         triangles = new (uint i0, uint i1, uint i2)[0];
 
         List<int> vertexIndices = Enumerable.Range(0, vertices.Count).ToList();
@@ -35,7 +51,7 @@ public static class MeshTriangulation {
                 if (TriangleContainsVertex(v0, v1, v2, vertices))
                     continue;
 
-                trianglesList.Add(((uint)vertexIndices[i], (uint)vertexIndices[((i + 1) % vertices.Count)], (uint)vertexIndices[((i + 2) % vertices.Count)]));
+                trianglesList.Add(((uint)vertexIndices[i], (uint)vertexIndices[(i + 1) % vertices.Count], (uint)vertexIndices[(i + 2) % vertices.Count]));
                 vertices.RemoveAt((i + 1) % vertices.Count);
                 vertexIndices.RemoveAt((i + 1) % vertices.Count);
 
@@ -43,8 +59,10 @@ public static class MeshTriangulation {
                 break;
             }
 
-            if (!foundTriangle)
+            if (!foundTriangle) {
+                Debug.WriteLine(string.Join("\n", vertices.Select(v => $"{v.X} {v.Y}")));
                 return false;
+            }
         }
 
         triangles = trianglesList.ToArray();
@@ -73,42 +91,48 @@ public static class MeshTriangulation {
     private static bool IsPointInTriangle(Vector2 pt, Vector2 v1, Vector2 v2, Vector2 v3) {
         bool b1, b2, b3;
 
-        b1 = AreaSign(pt, v1, v2) < 0.0f;
-        b2 = AreaSign(pt, v2, v3) < 0.0f;
-        b3 = AreaSign(pt, v3, v1) < 0.0f;
+        b1 = MathUtils.AreaSign(pt, v1, v2) < 0.0f;
+        b2 = MathUtils.AreaSign(pt, v2, v3) < 0.0f;
+        b3 = MathUtils.AreaSign(pt, v3, v1) < 0.0f;
 
-        return ((b1 == b2) && (b2 == b3));
+        return b1 == b2 && b2 == b3;
     }
 
-    private static float AreaSign(Vector2 p1, Vector2 p2, Vector2 p3) {
-        return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
+    private static void MergeShapes(List<Vector2> vertices, Path shape) {
+        for (int i = 0; i < vertices.Count; i++) {
+            Vector2 v0 = vertices[i];
+            Vector2 v1 = vertices[(i + 1) % vertices.Count];
+
+            // TODO: maybe
+        }
+
     }
 
-    private static void InsertHole(List<Vector2> vertices, Vector2[] holeInCounterClockwiseOrder) {
-        if (!TryFindClosestHoleIndex(vertices, holeInCounterClockwiseOrder, out int verticesIndex, out int holeIndex))
+    private static void InsertHole(List<Vector2> vertices, Path hole) {
+        if (!TryFindClosestHoleIndex(vertices, hole, out int verticesIndex, out int holeIndex))
             throw new Exception("Could not find closest hole index");
 
-        IEnumerable<Vector2> holeVerticesInOrder = holeInCounterClockwiseOrder.Skip(holeIndex).Concat(holeInCounterClockwiseOrder.Take(holeIndex));
+        IEnumerable<Vector2> holeVerticesInOrder = hole.Skip(holeIndex).Concat(hole.Take(holeIndex));
         holeVerticesInOrder = holeVerticesInOrder.Concat(new Vector2[] { holeVerticesInOrder.First(), vertices[verticesIndex] });
         vertices.InsertRange(verticesIndex + 1, holeVerticesInOrder);
     }
 
-    private static bool TryFindClosestHoleIndex(List<Vector2> vertices, Vector2[] holeInCounterClockwiseOrder, out int verticesIndex, out int holeIndex) {
+    private static bool TryFindClosestHoleIndex(List<Vector2> vertices, Path hole, out int verticesIndex, out int holeIndex) {
         float distance = float.MaxValue;
         verticesIndex = -1;
         holeIndex = -1;
         for (int vI = 0; vI < vertices.Count; vI++) {
             Vector2 vert = vertices[vI];
 
-            for (int hI = 0; hI < holeInCounterClockwiseOrder.Length; hI++) {
-                Vector2 holeVert = holeInCounterClockwiseOrder[hI];
+            for (int hI = 0; hI < hole.Count; hI++) {
+                Vector2 holeVert = hole[hI];
 
                 float dist = Vector2.DistanceSquared(vert, holeVert);
 
                 if (dist > distance)
                     continue;
 
-                if (IntersectsLine(vert, holeVert, vertices, holeInCounterClockwiseOrder))
+                if (IntersectsLine(vert, holeVert, vertices, hole))
                     continue;
 
                 distance = dist;
@@ -123,7 +147,7 @@ public static class MeshTriangulation {
         return true;
     }
 
-    private static bool IntersectsLine(Vector2 p0, Vector2 p1, List<Vector2> vertices, Vector2[] holeInCounterClockwiseOrder) {
+    private static bool IntersectsLine(Vector2 p0, Vector2 p1, List<Vector2> vertices, Path hole) {
 
         for (int vI = 1; vI <= vertices.Count; vI++) {
             Vector2 v0 = vertices[vI - 1];
@@ -133,32 +157,21 @@ public static class MeshTriangulation {
                 continue;
 
 
-            if (DoLinesIntersect(p0, p1, v0, v1))
+            if (MathUtils.DoLinesIntersect(p0, p1, v0, v1, out _))
                 return true;
         }
 
-        for (int hI = 1; hI <= holeInCounterClockwiseOrder.Length; hI++) {
-            Vector2 v0 = holeInCounterClockwiseOrder[hI - 1];
-            Vector2 v1 = holeInCounterClockwiseOrder[hI % holeInCounterClockwiseOrder.Length];
+        for (int hI = 1; hI <= hole.Count; hI++) {
+            Vector2 v0 = hole[hI - 1];
+            Vector2 v1 = hole[hI % hole.Count];
 
             if (p0 == v0 || p1 == v0 || p0 == v1 || p1 == v1)
                 continue;
 
-            if (DoLinesIntersect(p0, p1, v0, v1))
+            if (MathUtils.DoLinesIntersect(p0, p1, v0, v1, out _))
                 return true;
         }
 
         return false;
-    }
-
-    private static bool DoLinesIntersect(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3) {
-        Vector2 s1 = p1 - p0;
-        Vector2 s2 = p3 - p2;
-
-        float s, t;
-        s = (-s1.Y * (p0.X - p2.X) + s1.X * (p0.Y - p2.Y)) / (-s2.X * s1.Y + s1.X * s2.Y);
-        t = (s2.X * (p0.Y - p2.Y) - s2.Y * (p0.X - p2.X)) / (-s2.X * s1.Y + s1.X * s2.Y);
-
-        return s >= 0 && s <= 1 && t >= 0 && t <= 1;
     }
 }

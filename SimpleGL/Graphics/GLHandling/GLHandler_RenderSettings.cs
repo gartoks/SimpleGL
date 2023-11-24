@@ -69,6 +69,19 @@ public static partial class GLHandler {
         _ClearBufferMask = cc | cd | cs;
     }
 
+    public static bool EnableScissorTest {
+        set {
+            if (value)
+                GL.Enable(EnableCap.ScissorTest);
+            else
+                GL.Disable(EnableCap.ScissorTest);
+        }
+    }
+
+    public static Box2i ScissorBox {
+        set => GL.Scissor(value.Min.X, value.Min.Y, value.Size.X, value.Size.Y);
+    }
+
     public static bool EnableCulling {
         set {
             if (value)

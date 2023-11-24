@@ -6,6 +6,7 @@ using SimpleGL.Graphics.Rendering;
 using SimpleGL.Graphics.Textures;
 using SimpleGL.Util;
 using SimpleGL.Util.Extensions;
+using SixLabors.Fonts;
 using StbImageSharp;
 using System.Diagnostics;
 
@@ -31,7 +32,8 @@ internal sealed class TestApplication : Application {
         Log.OnLog += (message, type) => Console.WriteLine($"[{type}] {message}");
         Log.OnLog += (message, type) => Debug.WriteLine($"[{type}] {message}");
 
-        ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(-5 * 16f / 9f, 5 * 16f / 9f, 5, -5, -1, 1);
+        const int SIZE = 50;
+        ProjectionMatrix = Matrix4.CreateOrthographicOffCenter(-SIZE * 0 * 16f / 9f, SIZE * 16f / 9f, SIZE, -SIZE, -1, 1);
     }
 
     public override void OnRenderStart() {
@@ -42,21 +44,26 @@ internal sealed class TestApplication : Application {
         VertexAttribute va_color = VertexAttribute.Create("color", 4);
         VertexAttribute[] vertexAtributes = { va_position, va_color };
 
-        const int VERTICES = 32;
-        Vector2[] outerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(1f * -MathF.Cos(i / (float)VERTICES * MathF.Tau), 1f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
-        Vector2[] innerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(0.5f * MathF.Cos(i / (float)VERTICES * MathF.Tau), 0.5f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
-        MeshTriangulation.Triangulate(outerVertices, new Vector2[][] { innerVertices }, out Vector2[] vertices, out (uint i0, uint i1, uint i2)[] indices);
+        //const int VERTICES = 32;
+        //Vector2[] outerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(1f * -MathF.Cos(i / (float)VERTICES * MathF.Tau), 1f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
+        //Vector2[] innerVertices = Enumerable.Range(0, VERTICES).Select(i => new Vector2(0.5f * MathF.Cos(i / (float)VERTICES * MathF.Tau), 0.5f * MathF.Sin(i / (float)VERTICES * MathF.Tau))).ToArray();
+        //MeshTriangulation.Triangulate(outerVertices, new Vector2[][] { innerVertices }, out Vector2[] vertices, out (uint i0, uint i1, uint i2)[] indices);
 
         using FileStream fs = new FileStream(Path.Combine("Resources", "TestTex01.png"), FileMode.Open);
         ImageResult image = ImageResult.FromStream(fs);
         Texture = GraphicsHelper.CreateTexture(image);
 
+        FontCollection fontCollection = new FontCollection();
+        FontFamily fontFamily = fontCollection.Add("Resources/New Bread.ttf");
+        Font font = fontFamily.CreateFont(12, FontStyle.Regular);
+        (Vector2[] vertices, (uint i0, uint i1, uint i2)[] triangles) = TextMeshGenerator.ConvertToMesh(font, "Hello World!");
+
         Random random = new Random();
-        Mesh = GraphicsHelper.CreateMesh(vertices.Length, vertexAtributes, indices);
+        Mesh = GraphicsHelper.CreateMesh(vertices.Length, vertexAtributes, triangles);
         for (int i = 0; i < vertices.Length; i++) {
             VertexData va = Mesh.GetVertexData(i);
             va.SetAttributeData(va_position, vertices[i].X, vertices[i].Y, 0);
-            va.SetAttributeData(va_color, RndColor(random).ToArray(true));
+            va.SetAttributeData(va_color, /*RndColor(random)*/Color4.White.ToArray(true));
         }
         Vao = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, Shader, Mesh, Texture);
 

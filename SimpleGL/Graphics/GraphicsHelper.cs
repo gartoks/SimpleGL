@@ -1,7 +1,6 @@
 ﻿using OpenTK.Mathematics;
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Graphics.Textures;
-using SimpleGL.Util;
 using StbImageSharp;
 using System.Text;
 
@@ -57,7 +56,7 @@ public static class GraphicsHelper {
         return mesh;
     }*/
 
-    public static TextureAtlas CreateTextureAtlas(ImageResult image, IReadOnlyDictionary<string, RectangleI> subTextureBounds) {
+    public static TextureAtlas CreateTextureAtlas(ImageResult image, IReadOnlyDictionary<string, Box2i> subTextureBounds) {
         int textureId = ExecuteGLFunction(() => {
             GLHandler.InitializeTexture(image, out int texId);
             return texId;
@@ -73,7 +72,7 @@ public static class GraphicsHelper {
             Data = new byte[] { 255, 255, 255, 255 },
         };
 
-        return CreateTextureAtlas(image, new Dictionary<string, RectangleI>());
+        return CreateTextureAtlas(image, new Dictionary<string, Box2i>());
     }
 
     public static Texture2D CreateTexture(ImageResult image) {

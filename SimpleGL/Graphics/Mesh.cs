@@ -7,6 +7,7 @@ public sealed class Mesh {
 
     public IReadOnlyDictionary<string, VertexAttribute> VertexAttributes { get; }
     public IReadOnlyList<int> Indices { get; }
+    public int ZIndex { get; set; }
 
     private VertexData[] VertexData { get; }
     private int interleavedVertexDataLength;
@@ -16,6 +17,11 @@ public sealed class Mesh {
     internal Mesh(int vertexCount, VertexAttribute[] vertexAttributes, (uint idx0, uint idx1, uint idx2)[] clockwiseIndices) {
         if (vertexCount <= 0) {
             Log.WriteLine($"Cannot create mesh. Invalid vertex count ({vertexCount}). Must be at least one.", eLogType.Error);
+            return;
+        }
+
+        if (clockwiseIndices.Length == 0) {
+            Log.WriteLine($"Cannot create mesh. Invalid triangle count ({clockwiseIndices.Length}). Must be at least one.", eLogType.Error);
             return;
         }
 

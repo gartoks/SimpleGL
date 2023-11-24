@@ -117,14 +117,16 @@ public sealed class VertexArrayObject : IDisposable {
         Dispose(disposing: false);
     }
 
-    public void Render() {
+    public void Render(Renderer renderer) {
         Clean();
 
         if (!GLHandler.IsShaderBound(Shader))
             Shader.Bind();
 
-        foreach (Texture2D texture in Textures)
-            texture.Bind();
+        for (int i = 0; i < Textures.Length; i++) {
+            Texture texture = Textures[i];
+            texture.Bind(i);
+        }
 
         GLHandler.BindVao(this);
 
@@ -134,11 +136,11 @@ public sealed class VertexArrayObject : IDisposable {
         GLHandler.Render(ElementBufferObject);
 
         GLHandler.ReleaseVao(this);
+    }
 
-        foreach (Texture2D texture in Textures)
-            texture.Release();
-
-        //Shader.Release();
+    internal void AssignShaderUniforms() {
+        foreach (ShaderUniform uniform in Shader.Uniforms.Values)
+            ShaderUniformAssignmentHandler(Shader, uniform);
     }
 
     private void Clean() {

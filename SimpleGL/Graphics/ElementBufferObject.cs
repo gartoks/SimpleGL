@@ -2,7 +2,7 @@
 
 namespace SimpleGL.Graphics;
 public sealed class ElementBufferObject : IDisposable {
-    public const int MAX_SIZE = 60000;
+    public const int MAX_SIZE = ushort.MaxValue;
 
     public eBufferType Type { get; }
 

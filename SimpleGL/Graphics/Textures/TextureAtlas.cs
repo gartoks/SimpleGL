@@ -1,11 +1,11 @@
-﻿using SimpleGL.Util;
+﻿using OpenTK.Mathematics;
 using StbImageSharp;
 
 namespace SimpleGL.Graphics.Textures;
 public sealed class TextureAtlas : Texture2D {
-    private IReadOnlyDictionary<string, RectangleI> SubTextureBounds { get; }
+    private IReadOnlyDictionary<string, Box2i> SubTextureBounds { get; }
 
-    public TextureAtlas(ImageResult image, int textureId, IReadOnlyDictionary<string, RectangleI> subTextureBounds)
+    public TextureAtlas(ImageResult image, int textureId, IReadOnlyDictionary<string, Box2i> subTextureBounds)
         : base(image, textureId) {
 
         SubTextureBounds = subTextureBounds;
@@ -13,7 +13,7 @@ public sealed class TextureAtlas : Texture2D {
 
     public bool TryGetSubTexture(string subTextureName, out Texture? texture) {
         texture = default;
-        bool found = SubTextureBounds.TryGetValue(subTextureName, out RectangleI bounds);
+        bool found = SubTextureBounds.TryGetValue(subTextureName, out Box2i bounds);
 
         if (!found)
             return false;

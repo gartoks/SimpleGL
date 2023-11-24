@@ -114,6 +114,11 @@ public static partial class GLHandler {   // TODO stencil
         if (BoundShader != null)
             ReleaseShader(BoundShader);
 
+        for (int i = 0; i < AssignedTextures.Length; i++) {
+            if (AssignedTextures[i] != null)
+                UnassignTextureUnit(i);
+        }
+
         //GL.Flush();
 
         //Window.Window.Instance.SwapBuffers();   // un-nice // TODO

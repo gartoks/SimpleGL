@@ -60,7 +60,8 @@ public static partial class GLHandler {
             return;
         }
 
-        if (IsTextureAssigned(texture))
+        int assignedTextureUnit = AssignedTextureUnit(texture);
+        if (assignedTextureUnit == textureUnit)
             return;
 
         Texture? currentlyAssignedTexture = AssignedTexture(textureUnit);
@@ -94,6 +95,10 @@ public static partial class GLHandler {
         }
 
         Texture currentlyAssignedTexture = AssignedTexture(textureUnit);
+
+        if (currentlyAssignedTexture == null)
+            return;
+
         AssignedTextures[textureUnit] = null;
         AssignedTextureUnits.Remove(currentlyAssignedTexture);
         GL.BindTextureUnit(textureUnit, 0);

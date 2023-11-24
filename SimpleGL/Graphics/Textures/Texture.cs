@@ -70,17 +70,14 @@ public abstract class Texture : IDisposable {
         Dispose(disposing: false);
     }
 
-    internal void Bind() {
+    internal void Bind(int textureUnit = -1) {
         Clean();
 
-        GLHandler.AssignTexture(this);
+        if (textureUnit < 0)
+            GLHandler.AssignTexture(this);
+        else
+            GLHandler.AssignTexture(this, textureUnit);
     }
-
-    //internal void Bind(int textureUnit) {
-    //    GLHandler.BindTexture(this, textureUnit);
-
-    //    TextureUnit = textureUnit;
-    //}
 
     internal void Release() {
         GLHandler.UnassignTexture(this);

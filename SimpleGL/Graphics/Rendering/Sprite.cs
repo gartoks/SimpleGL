@@ -58,6 +58,13 @@ public class Sprite : IDisposable {
         }
     }
 
+    private int _ZIndex { get; set; }
+    public int ZIndex {
+        get => Mesh.ZIndex;
+        set => Mesh.ZIndex = value;
+    }
+
+
     public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler {
         get => VertexArrayObject.ShaderUniformAssignmentHandler;
         set => VertexArrayObject.ShaderUniformAssignmentHandler = value;

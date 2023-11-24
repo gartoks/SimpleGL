@@ -1,4 +1,4 @@
-﻿using SimpleGL.Util;
+﻿using OpenTK.Mathematics;
 
 namespace SimpleGL.Graphics.Textures;
 internal sealed class SubTexture : Texture {
@@ -6,14 +6,14 @@ internal sealed class SubTexture : Texture {
 
     public override IReadOnlyList<(float x, float y)> TextureCoordinates { get; }
 
-    public SubTexture(TextureAtlas textureAtlas, RectangleI bounds)
-        : base(bounds.Width, bounds.Height, textureAtlas.TextureId) {
+    public SubTexture(TextureAtlas textureAtlas, Box2i bounds)
+        : base(bounds.Size.X, bounds.Size.Y, textureAtlas.TextureId) {
         TextureAtlas = textureAtlas;
         TextureCoordinates = new (float x, float y)[] { // TODO: test order
-            (bounds.X / (float)textureAtlas.Width, bounds.Y / (float)textureAtlas.Height),
-            ((bounds.X + bounds.Width) / (float)textureAtlas.Width, bounds.Y / (float)textureAtlas.Height),
-            (bounds.X / (float)textureAtlas.Width, (bounds.Y + bounds.Height) / (float)textureAtlas.Height),
-            ((bounds.X + bounds.Width) / (float)textureAtlas.Width, (bounds.Y + bounds.Height) / (float)textureAtlas.Height),
+            (bounds.Min.X / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height),
+            ((bounds.Min.X + bounds.Size.X) / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height),
+            (bounds.Min.X / (float)textureAtlas.Width, (bounds.Min.Y + bounds.Size.Y) / (float)textureAtlas.Height),
+            ((bounds.Min.X + bounds.Size.X) / (float)textureAtlas.Width, (bounds.Min.Y + bounds.Size.Y) / (float)textureAtlas.Height),
         };
     }
 

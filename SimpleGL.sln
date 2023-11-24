@@ -5,7 +5,7 @@ VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleGL", "SimpleGL\SimpleGL.csproj", "{E655A682-62B2-4979-B9A2-6805D835F693}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleGLTest", "SimpleGLTest\SimpleGLTest.csproj", "{8A0AFE87-256E-4BB1-9489-260E364E7B5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleGLTest", "SimpleGLTest\SimpleGLTest.csproj", "{8A0AFE87-256E-4BB1-9489-260E364E7B5C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

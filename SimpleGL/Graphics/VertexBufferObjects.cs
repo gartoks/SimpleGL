@@ -3,7 +3,7 @@ using SimpleGL.Util;
 
 namespace SimpleGL.Graphics;
 public sealed class VertexBufferObject : IDisposable {
-    internal const int MAX_SIZE = 60000;
+    internal const int MAX_SIZE = ushort.MaxValue;
 
     internal eBufferType Type { get; }
 
