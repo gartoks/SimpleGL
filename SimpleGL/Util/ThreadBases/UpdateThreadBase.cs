@@ -1,7 +1,9 @@
 ﻿namespace SimpleGL.Util.ThreadBases;
 internal sealed class UpdateThreadBase : ThreadBase {
+    public const string NAME = "UpdateThread";
+
     public UpdateThreadBase(int ups)
-        : base("UpdateThread", ups) {
+        : base(NAME, ups) {
     }
 
     protected override void OnStart() {

@@ -4,6 +4,10 @@ using System.ComponentModel;
 
 namespace SimpleGL;
 public sealed class Window : GameWindow {
+    internal int Fps { get; private set; }
+    private float TpsTime { get; set; }
+    private int TpsCounter { get; set; }
+
     internal Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
         : base(gameWindowSettings, nativeWindowSettings) {
     }
@@ -23,7 +27,18 @@ public sealed class Window : GameWindow {
     protected override void OnRenderFrame(FrameEventArgs args) {
         base.OnRenderFrame(args);
 
-        Application.Instance.OnRender((float)args.Time);
+        float deltaTime = (float)args.Time;
+
+        TpsTime += deltaTime;
+        TpsCounter++;
+
+        if (TpsTime >= 1f) {
+            Fps = TpsCounter;
+            TpsTime = 0f;
+            TpsCounter = 0;
+        }
+
+        Application.Instance.OnRender(deltaTime);
 
         SwapBuffers();
     }

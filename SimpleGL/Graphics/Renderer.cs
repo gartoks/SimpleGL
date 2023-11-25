@@ -27,13 +27,13 @@ public sealed class Renderer {
         if (GLHandler.IsRendering)
             throw new InvalidOperationException("Cannot begin rendering while already rendering.");
 
+        GL.Viewport(Viewport);
+
         GLHandler.BeginRendering();
         ActiveRenderer = this;
         ViewProjectionMatrix = viewProjectionMatrix;
         RenderingMode = renderingMode;
         RenderingVaos.Clear();
-
-        GL.Viewport(Viewport);
     }
 
     public void EndRendering() {
@@ -94,8 +94,8 @@ public sealed class Renderer {
         GLHandler.ApplyScaling(sx, sy);
     }
 
-    public void RevertTransform() {
-        GLHandler.RevertTransform();
+    public void PopTransform() {
+        GLHandler.PopTransform();
     }
 
     private void PerformRenderOperation(VertexArrayObject vao) {

@@ -178,7 +178,7 @@ public static partial class GLHandler {   // TODO stencil
         ApplyTransformation(Matrix4.CreateScale(sx, sy, 1));
     }
 
-    internal static void RevertTransform() {
+    internal static void PopTransform() {
         if (!IsRendering)
             return;
 
