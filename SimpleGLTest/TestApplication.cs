@@ -87,11 +87,11 @@ internal sealed class TestApplication : Application {
 
     private float Time = 0;
     public override void OnRender(float deltaTime) {
-        Renderer.BeginRendering(ProjectionMatrix);
+        Renderer.BeginRendering(ProjectionMatrix, eRenderingMode.Batched);
 
         Time += deltaTime;
 
-        Vao.Render();
+        Vao.Render(Renderer);
         //Sprite.Render(Renderer);
 
         Renderer.EndRendering();

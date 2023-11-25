@@ -18,7 +18,7 @@ public sealed class Renderer {
     private eRenderingMode RenderingMode { get; set; }
     private List<VertexArrayObject> RenderingVaos { get; }
 
-    private Renderer(Box2i viewport) {
+    public Renderer(Box2i viewport) {
         Viewport = viewport;
         RenderingVaos = new List<VertexArrayObject>();
     }

@@ -126,7 +126,7 @@ public class Sprite : IDisposable {
         if (!renderer.IsActive)
             throw new InvalidOperationException("Cannot render with an inactive renderer.");
 
-        VertexArrayObject.Render();
+        VertexArrayObject.Render(renderer);
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {

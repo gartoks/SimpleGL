@@ -120,22 +120,7 @@ public sealed class VertexArrayObject : IDisposable {
     public void Render(Renderer renderer) {
         Clean();
 
-        if (!GLHandler.IsShaderBound(Shader))
-            Shader.Bind();
-
-        for (int i = 0; i < Textures.Length; i++) {
-            Texture texture = Textures[i];
-            texture.Bind(i);
-        }
-
-        GLHandler.BindVao(this);
-
-        foreach (ShaderUniform uniform in Shader.Uniforms.Values)
-            ShaderUniformAssignmentHandler(Shader, uniform);
-
-        GLHandler.Render(ElementBufferObject);
-
-        GLHandler.ReleaseVao(this);
+        renderer.Render(this);
     }
 
     internal void AssignShaderUniforms() {
