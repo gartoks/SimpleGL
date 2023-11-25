@@ -1,4 +1,4 @@
-﻿using OpenTK.Windowing.Desktop;
+﻿/*using OpenTK.Windowing.Desktop;
 using SimpleGL.Graphics.GLHandling;
 
 namespace SimpleGL.Util.ThreadBases;
@@ -21,6 +21,8 @@ internal sealed class RenderThreadBase : ThreadBase {
     }
 
     protected override void OnStart() {
+        GLFWProvider.EnsureInitialized();
+        bool iomt = GLFWProvider.IsOnMainThread;
         Window = new Window(GameWindowSettings.Default, NativeWindowSettings.Default);
         Window.UpdateFrequency = TargetFps;
 
@@ -36,3 +38,4 @@ internal sealed class RenderThreadBase : ThreadBase {
         Window.Run();
     }
 }
+*/

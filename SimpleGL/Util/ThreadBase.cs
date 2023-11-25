@@ -24,8 +24,6 @@ public abstract class ThreadBase {
         Thread.Start();
     }
 
-    internal virtual void Stop() { }
-
     internal void Join() {
         Thread.Join();
     }

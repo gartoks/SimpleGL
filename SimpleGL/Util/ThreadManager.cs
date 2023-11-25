@@ -25,14 +25,6 @@ public sealed class ThreadManager {
             thread.Start();
     }
 
-    internal void Stop() {
-        //if (Application.State != eApplicationState.Exiting)
-        //    throw new InvalidOperationException("Cannot stop threads while application is not exiting");
-
-        foreach (ThreadBase thread in Threads.Values)
-            thread.Stop();
-    }
-
     internal void Join() {
         //if (Application.State != eApplicationState.Exiting)
         //    throw new InvalidOperationException("Cannot stop threads while application is not exiting");

@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace SimpleGL;
 public sealed class Window : GameWindow {
-    internal int Fps { get; private set; }
+    public int Fps { get; private set; }
     private float TpsTime { get; set; }
     private int TpsCounter { get; set; }
 

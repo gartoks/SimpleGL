@@ -1,4 +1,6 @@
-﻿using SimpleGL.Util;
+﻿using OpenTK.Windowing.Desktop;
+using SimpleGL.Graphics.GLHandling;
+using SimpleGL.Util;
 using SimpleGL.Util.ThreadBases;
 
 namespace SimpleGL;
@@ -15,12 +17,11 @@ public abstract class Application {
     public static eApplicationState State { get; private set; }
     public static ThreadManager ThreadManager { get; }
 
-    public static Window Window => RenderThread.Window;
-
-    private static RenderThreadBase RenderThread { get; set; }
-    private static UpdateThreadBase UpdateThread { get; set; }
+    public static Window Window { get; }
 
     static Application() {
+        Window = new Window(GameWindowSettings.Default, NativeWindowSettings.Default);
+
         ThreadManager = new ThreadManager();
 
         State = eApplicationState.NotInitialized;
@@ -33,11 +34,12 @@ public abstract class Application {
         Instance = app;
         State = eApplicationState.Initialized;
 
-        UpdateThread = new UpdateThreadBase(Instance.TargetUpdatesPerSecond);
-        RenderThread = new RenderThreadBase(Instance.TargetFramesPerSecond);
+        Window.UpdateFrequency = app.TargetFramesPerSecond;
+        GLHandler.Initialize();
 
-        ThreadManager.RegisterGameThread(UpdateThread);
-        ThreadManager.RegisterGameThread(RenderThread);
+        //ThreadManager.RegisterGameThread(new WindowThreadBase(Window));
+        //ThreadManager.RegisterGameThread(new GLThreadBase(Window, Instance.FramesPerSecond));
+        ThreadManager.RegisterGameThread(new UpdateThreadBase(Instance.TargetUpdatesPerSecond));
     }
 
     public static void Start() {
@@ -47,7 +49,10 @@ public abstract class Application {
         State = eApplicationState.Running;
         ThreadManager.Start();
 
+        Window.Run();
+
         ThreadManager.Join();
+        Window.Dispose();
     }
 
     public static void Exit() {
@@ -55,7 +60,7 @@ public abstract class Application {
             throw new InvalidOperationException("Cannot exit application while it is not running");
 
         State = eApplicationState.Exiting;
-        ThreadManager.Stop();
+        Window.Close();
     }
 
     private int TargetFramesPerSecond { get; }
