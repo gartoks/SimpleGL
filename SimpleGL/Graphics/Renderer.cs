@@ -74,6 +74,30 @@ public sealed class Renderer {
         }
     }
 
+    public void PushTransform() {
+        GLHandler.PushTransform();
+    }
+
+    public void ApplyTransformation(Matrix4 transformationMatrix) {
+        GLHandler.ApplyTransformation(transformationMatrix);
+    }
+
+    public void ApplyTranslation(float dx, float dy, float dz = 0) {
+        GLHandler.ApplyTranslation(dx, dy, dz);
+    }
+
+    public void ApplyRotation(float angle) {
+        GLHandler.ApplyRotation(angle);
+    }
+
+    public void ApplyScaling(float sx, float sy) {
+        GLHandler.ApplyScaling(sx, sy);
+    }
+
+    public void RevertTransform() {
+        GLHandler.RevertTransform();
+    }
+
     private void PerformRenderOperation(VertexArrayObject vao) {
         if (!GLHandler.IsShaderBound(vao.Shader))
             vao.Shader.Bind();

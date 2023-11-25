@@ -145,37 +145,37 @@ public static partial class GLHandler {   // TODO stencil
         transformStack.Push(m);
     }*/
 
-    internal static void ApplyTranslation(float dx, float dy, float dz = 0) {
+    internal static void PushTransform() {
         if (!IsRendering)
             return;
 
-        Matrix4 m = Matrix4.CreateTranslation(dx, dy, 0);
         if (TransformStack.Any())
-            m *= TransformStack.Peek(); // TODO check mult order
+            TransformStack.Push(TransformStack.Peek());
+        else
+            TransformStack.Push(Matrix4.Identity);
+    }
 
+    internal static void ApplyTransformation(Matrix4 transformationMatrix) {
+        if (!IsRendering)
+            return;
+
+        if (!TransformStack.Any())
+            throw new InvalidOperationException("Cannot apply transformation to empty transform stack.");
+
+        Matrix4 m = transformationMatrix * TransformStack.Pop();
         TransformStack.Push(m);
+    }
+
+    internal static void ApplyTranslation(float dx, float dy, float dz = 0) {
+        ApplyTransformation(Matrix4.CreateTranslation(dx, dy, dz));
     }
 
     internal static void ApplyRotation(float angle) {
-        if (!IsRendering)
-            return;
-
-        Matrix4 m = Matrix4.CreateRotationZ(angle);
-        if (TransformStack.Any())
-            m *= TransformStack.Peek(); // TODO check mult order
-
-        TransformStack.Push(m);
+        ApplyTransformation(Matrix4.CreateRotationZ(angle));
     }
 
     internal static void ApplyScaling(float sx, float sy) {
-        if (!IsRendering)
-            return;
-
-        Matrix4 m = Matrix4.CreateScale(sx, sy, 1);
-        if (TransformStack.Any())
-            m *= TransformStack.Peek(); // TODO check mult order
-
-        TransformStack.Push(m);
+        ApplyTransformation(Matrix4.CreateScale(sx, sy, 1));
     }
 
     internal static void RevertTransform() {
