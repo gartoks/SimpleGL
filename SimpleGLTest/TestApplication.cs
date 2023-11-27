@@ -69,7 +69,7 @@ internal sealed class TestApplication : Application {
         //Sprite.Render(Renderer);
         //Rect.Rotation += deltaTime;
         //Rect.Render(Renderer);
-        Primitives.DrawRectangle(Vector2.Zero, Vector2.One, new Vector2(0.5f, 0.5f), Time, 0, Color4.Red);
+        Primitives.DrawRectangleLines(Vector2.Zero, Vector2.One, 0.1f, new Vector2(0f, 0f), Time, 0, Color4.Red);
         Primitives.DrawRectangle(Vector2.Zero, Vector2.One / 2f, new Vector2(0.5f, 0.5f), -Time, 1, Color4.Lime);
         Primitives.DrawLine(Vector2.Zero, Vector2.One, 0.1f, 2, Color4.Blue);
 

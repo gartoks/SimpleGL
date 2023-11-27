@@ -22,7 +22,7 @@ public static class GraphicsHelper {
 
     public static bool IsGLThread() => GLHandler.RenderThread == Thread.CurrentThread;
 
-    public static Matrix4 CurrentTransformationMatrix => GLHandler.CurrentTransformationMatrix;
+    //public static Matrix4 CurrentTransformationMatrix => GLHandler.CurrentTransformationMatrix;
 
     public static Mesh CreateMesh(int vertexCount, VertexAttribute[] vertexAttributes, (uint idx0, uint idx1, uint idx2)[] clockwiseTriangles) {
         return new Mesh(vertexCount, vertexAttributes, clockwiseTriangles);

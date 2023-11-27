@@ -62,7 +62,7 @@ public sealed class Renderer {
         RenderingObjects.Add(new RenderData(vao, zIndex, preRenderCallback));
     }
 
-    public void PushTransform() {
+    /*public void PushTransform() {
         GLHandler.PushTransform();
     }
 
@@ -84,7 +84,7 @@ public sealed class Renderer {
 
     public void PopTransform() {
         GLHandler.PopTransform();
-    }
+    }*/
 
     private void PerformRenderOperation(VertexArrayObject vao) {
         if (!GLHandler.IsShaderBound(vao.Shader))

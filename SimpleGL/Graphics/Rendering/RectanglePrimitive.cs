@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGL.Util;
 using SimpleGL.Util.Extensions;
 
 namespace SimpleGL.Graphics.Rendering;
@@ -15,48 +16,7 @@ public class RectanglePrimitive : IDisposable {
         set => _Tint = value;
     }
 
-    private Vector2 _Position { get; set; }
-    public Vector2 Position {
-        get => _Position;
-        set {
-            _Position = value;
-            IsModelMatrixDirty = true;
-        }
-    }
-
-    private Vector2 _Scale { get; set; }
-    public Vector2 Scale {
-        get => _Scale;
-        set {
-            _Scale = value;
-            IsModelMatrixDirty = true;
-        }
-    }
-
-    private float _Rotation { get; set; }
-    public float Rotation {
-        get => _Rotation;
-        set {
-            _Rotation = value;
-            IsModelMatrixDirty = true;
-        }
-    }
-
-    private Vector2 _Pivot { get; set; }
-    public Vector2 Pivot {
-        get => _Pivot;
-        set {
-            _Pivot = value;
-            IsModelMatrixDirty = true;
-        }
-    }
-
-    private int _ZIndex { get; set; }
-    public int ZIndex {
-        get => _ZIndex;
-        set => _ZIndex = value;
-    }
-
+    public Transform Transform { get; }
 
     public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler {
         get => VertexArrayObject.ShaderUniformAssignmentHandler;
@@ -64,23 +24,6 @@ public class RectanglePrimitive : IDisposable {
     }
 
     private VertexArrayObject VertexArrayObject { get; }
-
-    //public Color4 Tint { get; }
-    private Matrix4 _ModelMatrix { get; set; }
-    private Matrix4 ModelMatrix {
-        get {
-            if (IsModelMatrixDirty) {
-                _ModelMatrix = Matrix4.CreateTranslation(Pivot.X - 0.5f, Pivot.Y - 0.5f, 0) *
-                               Matrix4.CreateScale(Scale.X, Scale.Y, 1) *
-                               Matrix4.CreateRotationZ(Rotation) *
-                               Matrix4.CreateTranslation(Position.X, Position.Y, 0);
-                IsModelMatrixDirty = false;
-            }
-
-            return _ModelMatrix;
-        }
-    }
-    private bool IsModelMatrixDirty { get; set; }
 
     private bool disposedValue;
 
@@ -90,11 +33,7 @@ public class RectanglePrimitive : IDisposable {
 
         Tint = Color4.White;
 
-        Position = Vector2.Zero;
-        Scale = Vector2.One;
-        Rotation = 0;
-        Pivot = Vector2.Zero;
-        IsModelMatrixDirty = true;
+        Transform = new Transform();
     }
 
     // override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
@@ -107,7 +46,7 @@ public class RectanglePrimitive : IDisposable {
         if (!Renderer.HasActiveRenderer)
             throw new InvalidOperationException("No renderer is active.");
 
-        VertexArrayObject.Render(ZIndex);
+        VertexArrayObject.Render(Transform.ZIndex);
     }
 
     internal void Render(int zIndex, Action preRenderCallback) {
@@ -141,14 +80,14 @@ public class RectanglePrimitive : IDisposable {
 
 
     public void AssignShaderUniform(Shader shader, ShaderUniform uniform) {
-        string name = uniform.Name/*.ToLowerInvariant()*/;
+        string name = uniform.Name;
 
         if (name == "u_color" && uniform.Type == UniformType.FloatVector4)
             uniform.Set(Tint);
         else if (name == "u_viewProjectionMatrix" && uniform.Type == UniformType.Matrix4x4)
             uniform.Set(Renderer.ActiveRenderer!.ViewProjectionMatrix!.Value);
         else if (name == "u_modelMatrix" && uniform.Type == UniformType.Matrix4x4)
-            uniform.Set(ModelMatrix);
+            uniform.Set(Transform.TransformationMatrix);
     }
 
     private static Mesh CreateMesh() {
