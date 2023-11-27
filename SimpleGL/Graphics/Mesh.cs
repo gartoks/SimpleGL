@@ -7,7 +7,6 @@ public sealed class Mesh {
 
     public IReadOnlyDictionary<string, VertexAttribute> VertexAttributes { get; }
     public IReadOnlyList<int> Indices { get; }
-    public int ZIndex { get; set; }
 
     private VertexData[] VertexData { get; }
     private int interleavedVertexDataLength;

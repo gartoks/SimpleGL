@@ -117,10 +117,10 @@ public sealed class VertexArrayObject : IDisposable {
         Dispose(disposing: false);
     }
 
-    public void Render(Renderer renderer) {
+    public void Render(Renderer renderer, int zIndex = 0) {
         Clean();
 
-        renderer.Render(this);
+        renderer.Render(this, zIndex);
     }
 
     internal void AssignShaderUniforms() {

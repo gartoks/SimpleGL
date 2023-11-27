@@ -14,10 +14,10 @@ public sealed class Renderer {
     public bool IsActive => GLHandler.IsRendering && ActiveRenderer == this;
 
     private eRenderingMode RenderingMode { get; set; }
-    private List<VertexArrayObject> RenderingVaos { get; }
+    private List<(VertexArrayObject vao, int zIndex)> RenderingVaos { get; }
 
     public Renderer() {
-        RenderingVaos = new List<VertexArrayObject>();
+        RenderingVaos = new();
     }
 
     public void BeginRendering(Matrix4 viewProjectionMatrix, eRenderingMode renderingMode) {
@@ -39,12 +39,12 @@ public sealed class Renderer {
             throw new InvalidOperationException("Cannot end rendering while not active.");
 
         if (RenderingMode == eRenderingMode.Batched) {
-            IEnumerable<IGrouping<int, VertexArrayObject>> zGroups = RenderingVaos.GroupBy(vao => vao.Mesh.ZIndex);
-            foreach (IGrouping<int, VertexArrayObject> group in zGroups) {
-                IEnumerable<IGrouping<Shader, VertexArrayObject>> shaderGroups = group.GroupBy(vao => vao.Shader);
-                foreach (IGrouping<Shader, VertexArrayObject> shaderGroup in shaderGroups) {
-                    foreach (VertexArrayObject vao in shaderGroup)
-                        PerformRenderOperation(vao);
+            IEnumerable<IGrouping<int, (VertexArrayObject vao, int zIndex)>> zGroups = RenderingVaos.GroupBy(vao => vao.zIndex);
+            foreach (IGrouping<int, (VertexArrayObject vao, int zIndex)> group in zGroups) {
+                IEnumerable<IGrouping<Shader, (VertexArrayObject vao, int zIndex)>> shaderGroups = group.GroupBy(vao => vao.vao.Shader);
+                foreach (IGrouping<Shader, (VertexArrayObject vao, int zIndex)> shaderGroup in shaderGroups) {
+                    foreach ((VertexArrayObject vao, int zIndex) vao in shaderGroup)
+                        PerformRenderOperation(vao.vao);
                 }
             }
             RenderingVaos.Clear();
@@ -55,7 +55,7 @@ public sealed class Renderer {
         ViewProjectionMatrix = null;
     }
 
-    public void Render(VertexArrayObject vao) {
+    internal void Render(VertexArrayObject vao, int zIndex) {
         if (!GLHandler.IsRendering)
             throw new InvalidOperationException("Cannot render vertex array object while not rendering.");
 
@@ -65,7 +65,7 @@ public sealed class Renderer {
         if (RenderingMode == eRenderingMode.Immediate) {
             PerformRenderOperation(vao);
         } else {
-            RenderingVaos.Add(vao);
+            RenderingVaos.Add((vao, zIndex));
         }
     }
 

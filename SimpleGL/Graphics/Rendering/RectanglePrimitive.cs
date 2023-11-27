@@ -1,34 +1,12 @@
 ﻿using OpenTK.Mathematics;
-using SimpleGL.Graphics.Textures;
 using SimpleGL.Util.Extensions;
 
 namespace SimpleGL.Graphics.Rendering;
-public class Sprite : IDisposable {
+public class RectanglePrimitive : IDisposable {
 
     public Shader Shader {
         get => VertexArrayObject.Shader;
         set => VertexArrayObject.Shader = value;
-    }
-
-    public Mesh Mesh {
-        get => VertexArrayObject.Mesh;
-        set => VertexArrayObject.Mesh = value;
-    }
-
-    public Texture Texture {
-        get => VertexArrayObject.Textures[0];
-        set {
-            VertexArrayObject.Textures[0] = value;
-
-            float[][] textureCoordinates = value.TextureCoordinates.Select(t => new float[] { t.x, t.y }).ToArray();
-            for (int y = 0; y < 2; y++) {
-                for (int x = 0; x < 2; x++) {
-                    int i = x + y * 2;
-                    VertexData va = Mesh.GetVertexData(i);
-                    va.SetAttributeData(Mesh.VertexAttributes["texCoords0"], textureCoordinates[/*x + y * 2*/i]);
-                }
-            }
-        }
     }
 
     private Color4 _Tint { get; set; }
@@ -108,9 +86,9 @@ public class Sprite : IDisposable {
 
     private bool disposedValue;
 
-    public Sprite(Texture texture, Shader shader) {
-        Mesh mesh = CreateMesh(texture);
-        VertexArrayObject = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, shader, mesh, texture);
+    public RectanglePrimitive(Shader shader) {
+        Mesh mesh = CreateMesh();
+        VertexArrayObject = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, shader, mesh);
 
         Tint = Color4.White;
 
@@ -122,17 +100,16 @@ public class Sprite : IDisposable {
     }
 
     // override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-    ~Sprite() {
+    ~RectanglePrimitive() {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: false);
     }
-
 
     public void Render(Renderer renderer) {
         if (!renderer.IsActive)
             throw new InvalidOperationException("Cannot render with an inactive renderer.");
 
-        renderer.Render(VertexArrayObject, ZIndex);
+        VertexArrayObject.Render(renderer, ZIndex);
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {
@@ -159,11 +136,9 @@ public class Sprite : IDisposable {
 
 
     public void AssignShaderUniform(Shader shader, ShaderUniform uniform) {
-        string name = uniform.Name.ToLowerInvariant();
+        string name = uniform.Name/*.ToLowerInvariant()*/;
 
-        if (name == "u_texture0" && uniform.Type == UniformType.Texture2D)
-            uniform.Set(Texture);
-        else if (name == "u_color" && uniform.Type == UniformType.FloatVector4)
+        if (name == "u_color" && uniform.Type == UniformType.FloatVector4)
             uniform.Set(Tint);
         else if (name == "u_viewProjectionMatrix" && uniform.Type == UniformType.Matrix4x4)
             uniform.Set(Renderer.ActiveRenderer!.ViewProjectionMatrix!.Value);
@@ -171,18 +146,15 @@ public class Sprite : IDisposable {
             uniform.Set(ModelMatrix);
     }
 
-    private static Mesh CreateMesh(Texture texture) {
+    private static Mesh CreateMesh() {
         VertexAttribute va_position = VertexAttribute.Create("position", 3);
         VertexAttribute va_color = VertexAttribute.Create("color", 4);
-        VertexAttribute va_texCoords = VertexAttribute.Create("texCoords0", 2);
-        VertexAttribute[] vertexAtributes = { va_position, va_color, va_texCoords };
+        VertexAttribute[] vertexAtributes = { va_position, va_color };
 
         (uint idx0, uint idx1, uint idx2)[] indices = {
             (0, 1, 2),
             (2, 1, 3)
         };
-
-        float[][] textureCoordinates = texture.TextureCoordinates.Select(t => new float[] { t.x, t.y }).ToArray();
 
         Mesh mesh = GraphicsHelper.CreateMesh(4, vertexAtributes, indices);
         for (int y = 0; y < 2; y++) {
@@ -191,7 +163,6 @@ public class Sprite : IDisposable {
                 VertexData va = mesh.GetVertexData(i);
                 va.SetAttributeData(va_position, -0.5f + x, -0.5f + y, 0);
                 va.SetAttributeData(va_color, Color4.White.ToArray(true));
-                va.SetAttributeData(va_texCoords, textureCoordinates[/*x + y * 2*/i]);
             }
         }
 

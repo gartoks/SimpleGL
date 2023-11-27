@@ -158,6 +158,8 @@ public static class GraphicsHelper {
             sb_vert.Append("uniform mat4 " + DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME + " = mat4(1.0);\n");
             sb_vert.Append("uniform mat4 " + DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME + " = mat4(1.0);\n\n");
         }
+        sb_vert.Append("uniform vec4 u_color = vec4(1.0);\n\n");
+
         sb_vert.Append("layout(location = 0) in vec3 in_position;\n");
         sb_vert.Append("layout(location = 1) in vec4 in_color;\n\n");
         sb_vert.Append("out vec4 v_worldPos;\n");
@@ -168,7 +170,7 @@ public static class GraphicsHelper {
             sb_vert.Append(DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME + " * " + DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME + " * ");
         }
         sb_vert.Append("vec4(in_position, 1.0);\n");
-        sb_vert.Append("\tv_color = in_color;\n");
+        sb_vert.Append("\tv_color = in_color * u_color;\n");
         sb_vert.Append("\tv_worldPos = ");
         if (createMatrixUniforms) {
             sb_vert.Append(DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME + " * ");
@@ -205,6 +207,8 @@ public static class GraphicsHelper {
             sb_vert.Append($"uniform mat4 {DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME} = mat4(1.0);\n");
             sb_vert.Append($"uniform mat4 {DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME} = mat4(1.0);\n\n");
         }
+        sb_vert.Append("uniform vec4 u_color = vec4(1.0);\n\n");
+
         int layoutLocation = 0;
         sb_vert.Append($"layout(location = {layoutLocation++}) in vec3 in_position;\n");
         sb_vert.Append($"layout(location = {layoutLocation++}) in vec4 in_color;\n");
@@ -225,7 +229,7 @@ public static class GraphicsHelper {
             sb_vert.Append($"{DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME} * {DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME} * ");
         }
         sb_vert.Append("pos;\n");
-        sb_vert.Append("\tv_color = in_color;\n");
+        sb_vert.Append("\tv_color = in_color * u_color;\n");
         sb_vert.Append("\tv_worldPos = ");
         if (createMatrixUniforms) {
             sb_vert.Append($"{DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME} * ");
