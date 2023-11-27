@@ -1,5 +1,7 @@
-﻿using OpenTK.Windowing.Common;
+﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using SimpleGL.Graphics.GLHandling;
 using System.ComponentModel;
 
 namespace SimpleGL;
@@ -15,6 +17,7 @@ public sealed class Window : GameWindow {
     protected override void OnLoad() {
         base.OnLoad();
 
+        GLHandler.Viewport = new Box2i(0, 0, ClientSize.X, ClientSize.Y);
         Application.Instance.OnRenderStart();
     }
 
@@ -55,11 +58,11 @@ public sealed class Window : GameWindow {
         base.OnKeyUp(e);
     }*/
 
-    /*protected override void OnResize(ResizeEventArgs e) {
+    protected override void OnResize(ResizeEventArgs e) {
         base.OnResize(e);
 
-        GL.Viewport(0, 0, e.Width, e.Height);
-    }*/
+        GLHandler.Viewport = new Box2i(0, 0, e.Width, e.Height);
+    }
 
     protected override void OnClosing(CancelEventArgs e) {
         if (Application.State == eApplicationState.Running) {

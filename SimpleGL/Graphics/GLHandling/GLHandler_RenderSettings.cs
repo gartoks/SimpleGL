@@ -3,6 +3,26 @@ using OpenTK.Mathematics;
 
 namespace SimpleGL.Graphics.GLHandling;
 public static partial class GLHandler {
+    public static Box2i Viewport {
+        get {
+            if (!_Viewport.HasValue) {
+                int[] viewport = new int[4];
+                GL.GetInteger(GetPName.Viewport, viewport);
+
+                int x = viewport[0];
+                int y = viewport[1];
+                int width = viewport[2];
+                int height = viewport[3];
+                _Viewport = new Box2i(x, y, width, height);
+            }
+
+            return _Viewport.Value;
+        }
+        internal set {
+            GL.Viewport(value.Min.X, value.Min.Y, value.Size.X, value.Size.Y);
+            _Viewport = value;
+        }
+    }
 
     public static eBlendMode BlendMode {
         set => BlendFunctions = GraphicUtils.ModeToFunctions(value);
@@ -10,16 +30,16 @@ public static partial class GLHandler {
 
     public static (eBlendFunction source, eBlendFunction destination)? BlendFunctions {
         get {
-            if (blendFunctions == null)
+            if (_BlendFunctions == null)
                 return null;
 
-            eBlendFunction s = blendFunctions.Value.source;
-            eBlendFunction d = blendFunctions.Value.destination;
+            eBlendFunction s = _BlendFunctions.Value.source;
+            eBlendFunction d = _BlendFunctions.Value.destination;
 
             return (s, d);
         }
         set {
-            blendFunctions = value;
+            _BlendFunctions = value;
 
             EnableBlending = value != null;
 
@@ -31,9 +51,9 @@ public static partial class GLHandler {
     }
 
     public static eDepthFunction? DepthFunction {
-        get => depthFunction;
+        get => _DepthFunction;
         set {
-            depthFunction = value;
+            _DepthFunction = value;
 
             EnableDepthTest = value != null;
 
@@ -43,9 +63,9 @@ public static partial class GLHandler {
     }
 
     public static eAntiAliasMode AntiAliasMode {
-        get => antiAliasMode;
+        get => _AntiAliasMode;
         set {
-            antiAliasMode = value;
+            _AntiAliasMode = value;
 
             GL.Hint(HintTarget.PointSmoothHint, GraphicUtils.ToHint(value));
             GL.Hint(HintTarget.LineSmoothHint, GraphicUtils.ToHint(value));

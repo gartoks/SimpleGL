@@ -1,4 +1,6 @@
-﻿namespace SimpleGL.Util.Math;
+﻿using OpenTK.Mathematics;
+
+namespace SimpleGL.Util.Math;
 public static class MathUtils {
 
     /*public static bool IsPointInPolygon(IReadOnlyList<System.Numerics.Vector2> vertices, System.Numerics.Vector2 point) {
@@ -36,6 +38,30 @@ public static class MathUtils {
     public static float AreaSign(System.Numerics.Vector2 p1, System.Numerics.Vector2 p2, System.Numerics.Vector2 p3) {
         return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
     }*/
+
+    public static float ToDeg(this float rad) {
+        return rad * 180 / MathF.PI;
+    }
+
+    public static float ToRad(this float deg) {
+        return deg * MathF.PI / 180;
+    }
+
+    public static Vector2 Remap(this Vector2 value, Vector2 from1, Vector2 to1, Vector2 from2, Vector2 to2) {
+        return Lerp(to2, from2, (value - from1) / (to1 - from1));
+    }
+
+    public static Vector2 Lerp(Vector2 a, Vector2 b, Vector2 t) {
+        return a + (b - a) * t;
+    }
+
+    public static float Remap(this float value, float from1, float to1, float from2, float to2) {
+        return Lerp(to2, from2, (value - from1) / (to1 - from1));
+    }
+
+    public static float Lerp(float a, float b, float t) {
+        return a + (b - a) * t;
+    }
 
     public static bool IsPointInPolygon(IReadOnlyList<OpenTK.Mathematics.Vector2> vertices, OpenTK.Mathematics.Vector2 point) {
         bool result = false;

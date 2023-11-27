@@ -1,5 +1,4 @@
-﻿using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
+﻿using OpenTK.Mathematics;
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Graphics.Textures;
 
@@ -10,7 +9,6 @@ public enum eRenderingMode { Immediate, Batched }
 public sealed class Renderer {
     public static Renderer? ActiveRenderer { get; private set; }
 
-    public Box2i Viewport { get; set; }
     public Matrix4? ViewProjectionMatrix { get; private set; }
 
     public bool IsActive => GLHandler.IsRendering && ActiveRenderer == this;
@@ -18,16 +16,13 @@ public sealed class Renderer {
     private eRenderingMode RenderingMode { get; set; }
     private List<VertexArrayObject> RenderingVaos { get; }
 
-    public Renderer(Box2i viewport) {
-        Viewport = viewport;
+    public Renderer() {
         RenderingVaos = new List<VertexArrayObject>();
     }
 
     public void BeginRendering(Matrix4 viewProjectionMatrix, eRenderingMode renderingMode) {
         if (GLHandler.IsRendering)
             throw new InvalidOperationException("Cannot begin rendering while already rendering.");
-
-        GL.Viewport(Viewport);
 
         GLHandler.BeginRendering();
         ActiveRenderer = this;

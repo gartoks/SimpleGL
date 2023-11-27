@@ -27,9 +27,10 @@ public static partial class GLHandler {   // TODO stencil
 
     private static int _SupportedTextureUnits { get; set; }
 
-    private static (eBlendFunction source, eBlendFunction destination)? blendFunctions;
-    private static eDepthFunction? depthFunction;
-    private static eAntiAliasMode antiAliasMode;
+    private static (eBlendFunction source, eBlendFunction destination)? _BlendFunctions { get; set; }
+    private static eDepthFunction? _DepthFunction { get; set; }
+    private static eAntiAliasMode _AntiAliasMode { get; set; }
+    private static Box2i? _Viewport { get; set; }
 
     private static Queue<Task> GlTaskQueue { get; set; }
     private static Queue<Task> GlTaskQueue_swap { get; set; }
