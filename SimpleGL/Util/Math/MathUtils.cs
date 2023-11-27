@@ -39,6 +39,22 @@ public static class MathUtils {
         return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
     }*/
 
+    public static float CalculateSlope(Vector2 p1, Vector2 p2) {
+        // Calculate the differences in the X and Y coordinates
+        float deltaX = p2.X - p1.X;
+        float deltaY = p2.Y - p1.Y;
+
+        // Calculate the angle in radians
+        float angle = MathF.Atan2(deltaY, deltaX);
+
+        // Ensure the angle is in the range [0, 2π)
+        if (angle < 0) {
+            angle += MathF.Tau;
+        }
+
+        return angle;
+    }
+
     public static float ToDeg(this float rad) {
         return rad * 180 / MathF.PI;
     }
@@ -63,7 +79,7 @@ public static class MathUtils {
         return a + (b - a) * t;
     }
 
-    public static bool IsPointInPolygon(IReadOnlyList<OpenTK.Mathematics.Vector2> vertices, OpenTK.Mathematics.Vector2 point) {
+    public static bool IsPointInPolygon(IReadOnlyList<Vector2> vertices, Vector2 point) {
         bool result = false;
         int j = vertices.Count - 1;
         for (int i = 0; i < vertices.Count; i++) {
@@ -77,9 +93,9 @@ public static class MathUtils {
         return result;
     }
 
-    public static bool DoLinesIntersect(OpenTK.Mathematics.Vector2 p0, OpenTK.Mathematics.Vector2 p1, OpenTK.Mathematics.Vector2 p2, OpenTK.Mathematics.Vector2 p3, out OpenTK.Mathematics.Vector2 intersectionPoint) {
-        OpenTK.Mathematics.Vector2 s1 = p1 - p0;
-        OpenTK.Mathematics.Vector2 s2 = p3 - p2;
+    public static bool DoLinesIntersect(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3, out Vector2 intersectionPoint) {
+        Vector2 s1 = p1 - p0;
+        Vector2 s2 = p3 - p2;
 
         float s, t;
         s = (-s1.Y * (p0.X - p2.X) + s1.X * (p0.Y - p2.Y)) / (-s2.X * s1.Y + s1.X * s2.Y);
@@ -90,12 +106,12 @@ public static class MathUtils {
             intersectionPoint = p0 + (t * s1);
             return true;
         } else {
-            intersectionPoint = OpenTK.Mathematics.Vector2.Zero;
+            intersectionPoint = Vector2.Zero;
             return false;
         }
     }
 
-    public static float AreaSign(OpenTK.Mathematics.Vector2 p1, OpenTK.Mathematics.Vector2 p2, OpenTK.Mathematics.Vector2 p3) {
+    public static float AreaSign(Vector2 p1, Vector2 p2, Vector2 p3) {
         return (p1.X - p3.X) * (p2.Y - p3.Y) - (p2.X - p3.X) * (p1.Y - p3.Y);
     }
 }

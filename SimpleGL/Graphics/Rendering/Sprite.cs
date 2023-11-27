@@ -93,7 +93,7 @@ public class Sprite : IDisposable {
     private Matrix4 ModelMatrix {
         get {
             if (IsModelMatrixDirty) {
-                _ModelMatrix = Matrix4.CreateTranslation(Pivot.X, Pivot.Y, 0) *
+                _ModelMatrix = Matrix4.CreateTranslation(Pivot.X - 0.5f, Pivot.Y - 0.5f, 0) *
                                Matrix4.CreateScale(Scale.X, Scale.Y, 1) *
                                Matrix4.CreateRotationZ(Rotation) *
                                Matrix4.CreateTranslation(Position.X, Position.Y, 0);
@@ -132,7 +132,14 @@ public class Sprite : IDisposable {
         if (!renderer.IsActive)
             throw new InvalidOperationException("Cannot render with an inactive renderer.");
 
-        renderer.Render(VertexArrayObject, ZIndex);
+        VertexArrayObject.Render(renderer, ZIndex);
+    }
+
+    internal void Render(Renderer renderer, int zIndex, Action preRenderCallback) {
+        if (!renderer.IsActive)
+            throw new InvalidOperationException("Cannot render with an inactive renderer.");
+
+        VertexArrayObject.Render(renderer, zIndex, preRenderCallback);
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {

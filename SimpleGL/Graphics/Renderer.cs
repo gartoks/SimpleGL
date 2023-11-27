@@ -1,11 +1,9 @@
 ﻿using OpenTK.Mathematics;
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Graphics.Textures;
+using SimpleGL.Util;
 
 namespace SimpleGL.Graphics;
-
-public enum eRenderingMode { Immediate, Batched }
-
 public sealed class Renderer {
     public static Renderer? ActiveRenderer { get; private set; }
 
@@ -13,22 +11,20 @@ public sealed class Renderer {
 
     public bool IsActive => GLHandler.IsRendering && ActiveRenderer == this;
 
-    private eRenderingMode RenderingMode { get; set; }
-    private List<(VertexArrayObject vao, int zIndex)> RenderingVaos { get; }
+    private List<RenderData> RenderingObjects { get; }
 
     public Renderer() {
-        RenderingVaos = new();
+        RenderingObjects = new();
     }
 
-    public void BeginRendering(Matrix4 viewProjectionMatrix, eRenderingMode renderingMode) {
+    public void BeginRendering(Matrix4 viewProjectionMatrix) {
         if (GLHandler.IsRendering)
             throw new InvalidOperationException("Cannot begin rendering while already rendering.");
 
         GLHandler.BeginRendering();
         ActiveRenderer = this;
         ViewProjectionMatrix = viewProjectionMatrix;
-        RenderingMode = renderingMode;
-        RenderingVaos.Clear();
+        RenderingObjects.Clear();
     }
 
     public void EndRendering() {
@@ -38,35 +34,31 @@ public sealed class Renderer {
         if (!IsActive)
             throw new InvalidOperationException("Cannot end rendering while not active.");
 
-        if (RenderingMode == eRenderingMode.Batched) {
-            IEnumerable<IGrouping<int, (VertexArrayObject vao, int zIndex)>> zGroups = RenderingVaos.GroupBy(vao => vao.zIndex);
-            foreach (IGrouping<int, (VertexArrayObject vao, int zIndex)> group in zGroups) {
-                IEnumerable<IGrouping<Shader, (VertexArrayObject vao, int zIndex)>> shaderGroups = group.GroupBy(vao => vao.vao.Shader);
-                foreach (IGrouping<Shader, (VertexArrayObject vao, int zIndex)> shaderGroup in shaderGroups) {
-                    foreach ((VertexArrayObject vao, int zIndex) vao in shaderGroup)
-                        PerformRenderOperation(vao.vao);
+        IOrderedEnumerable<IGrouping<int, RenderData>> zGroups = RenderingObjects.GroupBy(vao => vao.ZIndex).OrderByDescending(vao => vao.Key);
+        foreach (IGrouping<int, RenderData> group in zGroups) {
+            IEnumerable<IGrouping<Shader, RenderData>> shaderGroups = group.GroupBy(vao => vao.VertexArrayObject.Shader);
+            foreach (IGrouping<Shader, RenderData> shaderGroup in shaderGroups) {
+                foreach (RenderData rD in shaderGroup) {
+                    rD.PreRenderCallback?.Invoke();
+                    PerformRenderOperation(rD.VertexArrayObject);
                 }
             }
-            RenderingVaos.Clear();
         }
+        RenderingObjects.Clear();
 
         GLHandler.EndRendering();
         ActiveRenderer = null;
         ViewProjectionMatrix = null;
     }
 
-    internal void Render(VertexArrayObject vao, int zIndex) {
+    internal void Render(VertexArrayObject vao, int zIndex, Action? preRenderCallback) {
         if (!GLHandler.IsRendering)
             throw new InvalidOperationException("Cannot render vertex array object while not rendering.");
 
         if (!IsActive)
             throw new InvalidOperationException("Cannot render vertex array object if the renderer is not active.");
 
-        if (RenderingMode == eRenderingMode.Immediate) {
-            PerformRenderOperation(vao);
-        } else {
-            RenderingVaos.Add((vao, zIndex));
-        }
+        RenderingObjects.Add(new RenderData(vao, zIndex, preRenderCallback));
     }
 
     public void PushTransform() {

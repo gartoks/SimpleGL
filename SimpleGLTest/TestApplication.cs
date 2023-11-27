@@ -24,7 +24,6 @@ internal sealed class TestApplication : Application {
     private VertexArrayObject TextVao { get; set; }
 
     private Sprite Sprite { get; set; }
-    private RectanglePrimitive Rect { get; set; }
 
     private Matrix4 ProjectionMatrix { get; }
 
@@ -52,9 +51,6 @@ internal sealed class TestApplication : Application {
         TextVao = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, Shader, TextMesh, Texture);
 
         Sprite = new Sprite(Texture, Shader);
-        Rect = new RectanglePrimitive(Shader);
-        //Rect.Pivot = new Vector2(0.5f, 0.5f);
-        Rect.Tint = Color4.Red;
 
         Window.ClientSize = new(1920, 1080);
         Renderer = new Renderer();
@@ -65,14 +61,17 @@ internal sealed class TestApplication : Application {
 
     private float Time = 0;
     public override void OnRender(float deltaTime) {
-        Renderer.BeginRendering(ProjectionMatrix, eRenderingMode.Immediate);
+        Renderer.BeginRendering(ProjectionMatrix);
 
         Time += deltaTime;
 
         //TextVao.Render(Renderer);
         //Sprite.Render(Renderer);
-        Rect.Rotation += deltaTime;
-        Rect.Render(Renderer);
+        //Rect.Rotation += deltaTime;
+        //Rect.Render(Renderer);
+        Primitives.DrawRectangle(Renderer, Vector2.Zero, Vector2.One, new Vector2(0.5f, 0.5f), Time, 0, Color4.Red);
+        Primitives.DrawRectangle(Renderer, Vector2.Zero, Vector2.One / 2f, new Vector2(0.5f, 0.5f), -Time, 1, Color4.Lime);
+        Primitives.DrawLine(Renderer, Vector2.Zero, Vector2.One, 0.1f, 2, Color4.Blue);
 
         Renderer.EndRendering();
     }
