@@ -6,6 +6,7 @@ using SimpleGL.Util;
 namespace SimpleGL.Graphics;
 public sealed class Renderer {
     public static Renderer? ActiveRenderer { get; private set; }
+    public static bool HasActiveRenderer => GLHandler.IsRendering && ActiveRenderer != null;
 
     public Matrix4? ViewProjectionMatrix { get; private set; }
 

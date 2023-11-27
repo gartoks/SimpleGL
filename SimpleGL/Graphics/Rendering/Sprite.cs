@@ -128,18 +128,12 @@ public class Sprite : IDisposable {
     }
 
 
-    public void Render(Renderer renderer) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Cannot render with an inactive renderer.");
-
-        VertexArrayObject.Render(renderer, ZIndex);
+    public void Render() {
+        VertexArrayObject.Render(ZIndex);
     }
 
-    internal void Render(Renderer renderer, int zIndex, Action preRenderCallback) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Cannot render with an inactive renderer.");
-
-        VertexArrayObject.Render(renderer, zIndex, preRenderCallback);
+    internal void Render(int zIndex, Action preRenderCallback) {
+        VertexArrayObject.Render(zIndex, preRenderCallback);
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {

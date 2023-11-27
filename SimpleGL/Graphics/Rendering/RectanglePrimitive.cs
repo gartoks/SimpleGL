@@ -103,18 +103,18 @@ public class RectanglePrimitive : IDisposable {
         Dispose(disposing: false);
     }
 
-    public void Render(Renderer renderer) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Cannot render with an inactive renderer.");
+    public void Render() {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
 
-        VertexArrayObject.Render(renderer, ZIndex);
+        VertexArrayObject.Render(ZIndex);
     }
 
-    internal void Render(Renderer renderer, int zIndex, Action preRenderCallback) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Cannot render with an inactive renderer.");
+    internal void Render(int zIndex, Action preRenderCallback) {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
 
-        VertexArrayObject.Render(renderer, zIndex, preRenderCallback);
+        VertexArrayObject.Render(zIndex, preRenderCallback);
     }
 
     private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {

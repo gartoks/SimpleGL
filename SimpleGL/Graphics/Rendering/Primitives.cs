@@ -7,9 +7,9 @@ public static class Primitives {
     private static RectanglePrimitive RectanglePrimitive { get; set; }
 
 
-    public static void DrawRectangle(Renderer renderer, Vector2 position, Vector2 size, Vector2 pivot, float rotation, int zIndex, Color4 color) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Renderer is not active.");
+    public static void DrawRectangle(Vector2 position, Vector2 size, Vector2 pivot, float rotation, int zIndex, Color4 color) {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
 
         ValidatePrimitives();
 
@@ -21,12 +21,12 @@ public static class Primitives {
             RectanglePrimitive.Tint = color;
         };
 
-        RectanglePrimitive.Render(renderer, zIndex, preRenderCallback);
+        RectanglePrimitive.Render(zIndex, preRenderCallback);
     }
 
-    public static void DrawLine(Renderer renderer, Vector2 start, Vector2 end, float thickness, int zIndex, Color4 color) {
-        if (!renderer.IsActive)
-            throw new InvalidOperationException("Renderer is not active.");
+    public static void DrawLine(Vector2 start, Vector2 end, float thickness, int zIndex, Color4 color) {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
 
         ValidatePrimitives();
 
@@ -38,7 +38,7 @@ public static class Primitives {
             RectanglePrimitive.Tint = color;
         };
 
-        RectanglePrimitive.Render(renderer, zIndex, preRenderCallback);
+        RectanglePrimitive.Render(zIndex, preRenderCallback);
     }
 
     private static void ValidatePrimitives() {
