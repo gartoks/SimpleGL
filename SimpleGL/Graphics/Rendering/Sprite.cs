@@ -32,11 +32,7 @@ public class Sprite : IDisposable {
         }
     }
 
-    private Color4 _Tint { get; set; }
-    public Color4 Tint {
-        get => _Tint;
-        set => _Tint = value;
-    }
+    public Color4 Tint { get; set; }
 
     public Transform Transform { get; }
 
@@ -50,12 +46,11 @@ public class Sprite : IDisposable {
     private bool disposedValue;
 
     public Sprite(Texture texture, Shader shader) {
+        Tint = Color4.White;
+        Transform = new Transform();
+
         Mesh mesh = CreateMesh(texture);
         VertexArrayObject = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, shader, mesh, texture);
-
-        Tint = Color4.White;
-
-        Transform = new Transform();
     }
 
     // override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources

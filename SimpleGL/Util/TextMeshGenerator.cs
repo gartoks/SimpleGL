@@ -7,8 +7,6 @@ using Path = SimpleGL.Util.Math.Path;
 
 namespace SimpleGL.Util;
 public static class TextMeshGenerator {
-    private const int BEZIER_CURVE_RESOLUTION = 15;
-
     public static (Vector2[] vertices, (uint i0, uint i1, uint i2)[] triangles) ConvertToMesh(Font font, string text) {
         IReadOnlyList<(char character, IReadOnlyList<Path> paths)> glyphPaths = ConvertToPaths(font, text);
 
@@ -33,7 +31,7 @@ public static class TextMeshGenerator {
     }
 
     public static IReadOnlyList<(char character, IReadOnlyList<Path> paths)> ConvertToPaths(Font font, string text) {
-        PathFindingGlyphRenderer renderer = new PathFindingGlyphRenderer();
+        PathFindingGlyphRenderer renderer = new PathFindingGlyphRenderer(font.Size);
         return renderer.ConvertToPaths(font, text);
     }
 
@@ -48,6 +46,8 @@ public static class TextMeshGenerator {
     }
 
     private class PathFindingGlyphRenderer : IGlyphRenderer {
+        private float FontSize { get; }
+
         private List<(char character, IReadOnlyList<Path> paths)> GlyphPaths { get; }
 
         private char CurrentGlyph { get; set; }
@@ -56,7 +56,9 @@ public static class TextMeshGenerator {
         private List<Vector2> CurrentPath { get; }
         private Vector2 CurrentPoint { get; set; }
 
-        public PathFindingGlyphRenderer() {
+        public PathFindingGlyphRenderer(float fontSize) {
+            FontSize = fontSize;
+
             GlyphPaths = new();
             CurrentGlyph = '\0';
             CurrentGlyphPaths = new();
@@ -127,8 +129,9 @@ public static class TextMeshGenerator {
             if (CurrentPath.Count == 0)
                 AddPointToCurrentPath(CurrentPoint);
 
-            for (int i = 1; i < BEZIER_CURVE_RESOLUTION; i++)
-                AddPointToCurrentPath(BezierCurves.Quadratic(CurrentPoint, secondControlPoint.Convert(), point.Convert(), i / (float)BEZIER_CURVE_RESOLUTION));
+            int bezierSteps = BezierCurveSteps();
+            for (int i = 1; i < bezierSteps; i++)
+                AddPointToCurrentPath(BezierCurves.Quadratic(CurrentPoint, secondControlPoint.Convert(), point.Convert(), i / (float)bezierSteps));
 
             AddPointToCurrentPath(point.Convert());
         }
@@ -137,8 +140,9 @@ public static class TextMeshGenerator {
             if (CurrentPath.Count == 0)
                 AddPointToCurrentPath(CurrentPoint);
 
-            for (int i = 1; i < BEZIER_CURVE_RESOLUTION; i++)
-                AddPointToCurrentPath(BezierCurves.Cubic(CurrentPoint, secondControlPoint.Convert(), thirdControlPoint.Convert(), point.Convert(), i / (float)BEZIER_CURVE_RESOLUTION));
+            int bezierSteps = BezierCurveSteps();
+            for (int i = 1; i < bezierSteps; i++)
+                AddPointToCurrentPath(BezierCurves.Cubic(CurrentPoint, secondControlPoint.Convert(), thirdControlPoint.Convert(), point.Convert(), i / (float)bezierSteps));
             AddPointToCurrentPath(point.Convert());
         }
 
@@ -146,7 +150,7 @@ public static class TextMeshGenerator {
             if (CurrentPath.Count > 0 && CurrentPath[^1].X == point.X && CurrentPath[^1].Y == point.Y)
                 return;
 
-            if (CurrentPath.Count > 1 && (CurrentPoint - point).LengthSquared < 0.5f)
+            if (CurrentPath.Count > 1 && (CurrentPoint - point).LengthSquared < VertexEliminationDistance())
                 return;
 
             CurrentPath.Add(point);
@@ -159,6 +163,14 @@ public static class TextMeshGenerator {
 
         public void SetDecoration(TextDecorations textDecorations, System.Numerics.Vector2 start, System.Numerics.Vector2 end, float thickness) {
             Debug.WriteLine($"Deco: {textDecorations} {thickness}");
+        }
+
+        private int BezierCurveSteps() {
+            return (int)FontSize;
+        }
+
+        private float VertexEliminationDistance() {
+            return 0.025f * MathF.Sqrt(FontSize);
         }
     }
 }

@@ -14,15 +14,11 @@ public sealed class Mesh {
     internal event MeshVertexDataChangedEventHandler OnMeshVertexDataChanged;
 
     internal Mesh(int vertexCount, VertexAttribute[] vertexAttributes, (uint idx0, uint idx1, uint idx2)[] clockwiseIndices) {
-        if (vertexCount <= 0) {
-            Log.WriteLine($"Cannot create mesh. Invalid vertex count ({vertexCount}). Must be at least one.", eLogType.Error);
-            return;
-        }
+        if (vertexCount <= 0)
+            throw new ArgumentException($"Cannot create mesh. Invalid vertex count ({vertexCount}). Must be at least one.");
 
-        if (clockwiseIndices.Length == 0) {
-            Log.WriteLine($"Cannot create mesh. Invalid triangle count ({clockwiseIndices.Length}). Must be at least one.", eLogType.Error);
-            return;
-        }
+        if (clockwiseIndices.Length == 0)
+            throw new ArgumentException($"Cannot create mesh. Invalid triangle count ({clockwiseIndices.Length}). Must be at least one.");
 
         VertexAttributes = vertexAttributes.ToDictionary(va => va.Name, va => va);
 
@@ -39,20 +35,16 @@ public sealed class Mesh {
         int[] indices = new int[clockwiseIndices.Length * 3];
         for (int i = 0; i < clockwiseIndices.Length; i++) {
             (uint idx0, uint idx1, uint idx2) triangle = clockwiseIndices[i];
-            if (triangle.idx0 >= VertexData.Length) {
-                Log.WriteLine($"Invalid index {triangle.idx0}. Must be in range of [0, {VertexData.Length - 1}]", eLogType.Error);
-                return;
-            }
+            if (triangle.idx0 >= VertexData.Length)
+                throw new ArgumentException($"Invalid index {triangle.idx0}. Must be in range of [0, {VertexData.Length - 1}]");
 
             if (triangle.idx1 >= VertexData.Length) {
                 Log.WriteLine($"Invalid index {triangle.idx1}. Must be in range of [0, {VertexData.Length - 1}]", eLogType.Error);
                 return;
             }
 
-            if (triangle.idx2 >= VertexData.Length) {
-                Log.WriteLine($"Invalid index {triangle.idx2}. Must be in range of [0, {VertexData.Length - 1}]", eLogType.Error);
-                return;
-            }
+            if (triangle.idx2 >= VertexData.Length)
+                throw new ArgumentException($"Invalid index {triangle.idx2}. Must be in range of [0, {VertexData.Length - 1}]");
 
             indices[i * 3 + 0] = (int)triangle.idx0;
             indices[i * 3 + 1] = (int)triangle.idx1;
