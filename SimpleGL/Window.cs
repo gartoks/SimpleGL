@@ -66,9 +66,7 @@ public sealed class Window : GameWindow {
 
     protected override void OnClosing(CancelEventArgs e) {
         if (Application.State == eApplicationState.Running) {
-            e.Cancel = true;
             Application.Exit();
-            return;
         }
 
         base.OnClosing(e);

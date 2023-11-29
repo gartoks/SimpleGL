@@ -13,7 +13,6 @@ public sealed class ThreadManager {
             throw new InvalidOperationException("Cannot register game thread while application is not initialized");
 
         Threads.Add(threadBase.Name, threadBase);
-        ThreadSyncEvent.AddCount();
     }
 
     public ThreadBase GetThread(string name) {
@@ -24,6 +23,7 @@ public sealed class ThreadManager {
         if (Application.State != eApplicationState.Running)
             throw new InvalidOperationException("Cannot start threads while application is not running");
 
+        ResetSyncEvent();
         foreach (ThreadBase thread in Threads.Values)
             thread.Start();
     }
