@@ -40,6 +40,8 @@ public abstract class Application {
         //ThreadManager.RegisterGameThread(new WindowThreadBase(Window));
         //ThreadManager.RegisterGameThread(new GLThreadBase(Window, Instance.FramesPerSecond));
         ThreadManager.RegisterGameThread(new UpdateThreadBase(Instance.TargetUpdatesPerSecond));
+
+        Instance.OnInitialize();
     }
 
     public static void Start() {
@@ -48,6 +50,7 @@ public abstract class Application {
 
         State = eApplicationState.Running;
         ThreadManager.Start();
+        ThreadManager.WaitForSyncEvent();
 
         Window.Run();
 
@@ -59,6 +62,7 @@ public abstract class Application {
         if (State != eApplicationState.Running)
             throw new InvalidOperationException("Cannot exit application while it is not running");
 
+        ThreadManager.ResetSyncEvent();
         State = eApplicationState.Exiting;
         Window.Close();
     }
@@ -70,6 +74,8 @@ public abstract class Application {
         TargetFramesPerSecond = targetFramesPerSecond;
         TargetUpdatesPerSecond = targetUpdatesPerSecond;
     }
+
+    protected virtual void OnInitialize() { }
 
     public abstract void OnUpdateStart();
     public abstract void OnUpdate(float deltaTime);

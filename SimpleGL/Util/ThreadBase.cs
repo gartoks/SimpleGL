@@ -30,6 +30,8 @@ public abstract class ThreadBase {
 
     private void Run() {
         OnStart();
+        Application.ThreadManager.SignalSyncEvent();
+        Application.ThreadManager.WaitForSyncEvent();
 
         float deltaTime = TargetTimePerTick;
         while (Application.State == eApplicationState.Running) {
@@ -51,6 +53,9 @@ public abstract class ThreadBase {
             int sleepTime = Stopwatch.ElapsedMilliseconds > TargetTimePerTick ? 0 : TargetTimePerTick - (int)Stopwatch.ElapsedMilliseconds;
             Thread.Sleep(sleepTime);
         }
+
+        Application.ThreadManager.SignalSyncEvent();
+        Application.ThreadManager.WaitForSyncEvent();
 
         OnStop();
     }

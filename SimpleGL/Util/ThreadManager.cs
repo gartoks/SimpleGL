@@ -1,9 +1,11 @@
 ﻿namespace SimpleGL.Util;
 public sealed class ThreadManager {
     private Dictionary<string, ThreadBase> Threads { get; }
+    private CountdownEvent ThreadSyncEvent { get; }
 
     internal ThreadManager() {
         Threads = new();
+        ThreadSyncEvent = new(0);
     }
 
     public void RegisterGameThread(ThreadBase threadBase) {
@@ -11,6 +13,7 @@ public sealed class ThreadManager {
             throw new InvalidOperationException("Cannot register game thread while application is not initialized");
 
         Threads.Add(threadBase.Name, threadBase);
+        ThreadSyncEvent.AddCount();
     }
 
     public ThreadBase GetThread(string name) {
@@ -31,5 +34,17 @@ public sealed class ThreadManager {
 
         foreach (ThreadBase thread in Threads.Values)
             thread.Join();
+    }
+
+    internal void SignalSyncEvent() {
+        ThreadSyncEvent.Signal();
+    }
+
+    internal void WaitForSyncEvent() {
+        ThreadSyncEvent.Wait();
+    }
+
+    internal void ResetSyncEvent() {
+        ThreadSyncEvent.Reset(Threads.Count);
     }
 }
