@@ -1,11 +1,34 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGL.Graphics.Textures;
 using SimpleGL.Util.Extensions;
 using SimpleGL.Util.Math;
 
 namespace SimpleGL.Graphics.Rendering;
 public static class Primitives {
     private static Shader UntexturedShader { get; set; }
+    private static Shader TextureShader { get; set; }
+    private static Texture Texture { get; set; }
+
     private static RectanglePrimitive RectanglePrimitive { get; set; }
+    private static Sprite Sprite { get; set; }
+
+    public static void DrawSprite(Vector2 position, Vector2 size, Vector2 pivot, float rotation, int zIndex, Texture texture, Color4 color) {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
+
+        ValidatePrimitives();
+
+        Action preRenderCallback = () => {
+            Sprite.Transform.Position = position;
+            Sprite.Transform.Scale = size;
+            Sprite.Transform.Pivot = pivot;
+            Sprite.Transform.Rotation = rotation;
+            Sprite.Tint = color;
+            Sprite.Texture = texture;
+        };
+
+        Sprite.Render(zIndex, preRenderCallback);
+    }
 
     public static void DrawRectangle(Vector2 position, Vector2 size, Vector2 pivot, float rotation, int zIndex, Color4 color) {
         if (!Renderer.HasActiveRenderer)
@@ -83,8 +106,21 @@ public static class Primitives {
             UntexturedShader = GraphicsHelper.CreateShader(vertexShader, fragmentShader);
         }
 
+        if (TextureShader == null) {
+            GraphicsHelper.CreateTexturedPassthroughShader(true, 1, out string textureVertexShader, out string textureFragmentShader);
+            TextureShader = GraphicsHelper.CreateShader(textureVertexShader, textureFragmentShader);
+        }
+
+        if (Texture == null) {
+            Texture = GraphicsHelper.CreateDefaultTexture();
+        }
+
         if (RectanglePrimitive == null) {
             RectanglePrimitive = new RectanglePrimitive(UntexturedShader);
+        }
+
+        if (Sprite == null) {
+            Sprite = new Sprite(Texture, TextureShader);
         }
     }
 }

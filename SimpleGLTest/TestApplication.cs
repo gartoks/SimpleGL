@@ -71,7 +71,9 @@ internal sealed class TestApplication : Application {
 
         Font.Transform.Rotation = Time;
         Font.Render("Hellop,\nabp\nAB");
-        Sprite.Render();
+        Primitives.DrawSprite(Vector2.Zero, new Vector2(4, 4), Vector2.One / 2f, 0, 3, Texture, Color4.White);
+        Primitives.DrawSprite(new Vector2(10, 0), new Vector2(8, 8), Vector2.One / 2f, Time, 3, Texture, Color4.Wheat);
+        //Sprite.Render();
         Primitives.DrawRectangleLines(Vector2.Zero, Vector2.One, 0.1f, new Vector2(0f, 0f), Time, 5, Color4.Red);
         Primitives.DrawRectangle(Vector2.Zero, Vector2.One / 2f, new Vector2(0.5f, 0.5f), -Time, 6, Color4.Lime);
         Primitives.DrawLine(Vector2.Zero, Vector2.One, 0.1f, 7, Color4.Blue);
