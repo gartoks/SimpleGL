@@ -23,6 +23,19 @@ public class MeshFont : IDisposable {
 
     public Transform Transform { get; }
 
+    private ShaderUniformAssignmentHandler _ShaderUniformAssignmentHandler { get; set; }
+    public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler {
+        get => _ShaderUniformAssignmentHandler;
+        set {
+            _ShaderUniformAssignmentHandler = value;
+
+            foreach (VertexArrayObject? vao in GlyphVaos.Values) {
+                if (vao != null)
+                    vao.ShaderUniformAssignmentHandler = value;
+            }
+        }
+    }
+
     private TextOptions TextOptions { get; }
 
     private Dictionary<char, VertexArrayObject?> GlyphVaos { get; }
@@ -35,6 +48,8 @@ public class MeshFont : IDisposable {
 
         Tint = Color4.White;
         Transform = new Transform();
+
+        _ShaderUniformAssignmentHandler = AssignShaderUniform;
 
         TextOptions = new TextOptions(font);
 
@@ -67,7 +82,6 @@ public class MeshFont : IDisposable {
                                   Matrix4.CreateRotationZ(Transform.Rotation) *
                                   Matrix4.CreateTranslation(Transform.Position.X, Transform.Position.Y, 0);
 
-        float xOffset = 0;
         float yOffset = 0;
         for (int i = 0, j = 0; i < text.Length; i++, j++) {
             char c = text[i];
@@ -86,17 +100,13 @@ public class MeshFont : IDisposable {
             GlyphBounds advance = advances[j];
 
             Matrix4 glyphMatrix = Matrix4.CreateTranslation(bounds.Bounds.X, yOffset, 0) * transformMatrix;
-            xOffset += advance.Bounds.Width;
 
             Action preRenderCallback = () => {
                 GlyphVaos[c]!.ShaderUniformAssignmentHandler = (shader, uniform) => {
-                    string name = uniform.Name;
+                    ShaderUniformAssignmentHandler(shader, uniform);
 
-                    if (name == "u_color" && uniform.Type == UniformType.FloatVector4)
-                        uniform.Set(Tint);
-                    else if (name == "u_viewProjectionMatrix" && uniform.Type == UniformType.Matrix4x4)
-                        uniform.Set(Renderer.ActiveRenderer!.ViewProjectionMatrix!.Value);
-                    else if (name == "u_modelMatrix" && uniform.Type == UniformType.Matrix4x4)
+                    string name = uniform.Name;
+                    if (name == "u_modelMatrix" && uniform.Type == UniformType.Matrix4x4)
                         uniform.Set(glyphMatrix);
                 };
             };
@@ -140,8 +150,6 @@ public class MeshFont : IDisposable {
             uniform.Set(Tint);
         else if (name == "u_viewProjectionMatrix" && uniform.Type == UniformType.Matrix4x4)
             uniform.Set(Renderer.ActiveRenderer!.ViewProjectionMatrix!.Value);
-        else if (name == "u_modelMatrix" && uniform.Type == UniformType.Matrix4x4)
-            uniform.Set(Transform.TransformationMatrix);
     }
 
     private Mesh? CreateMesh(char c) {

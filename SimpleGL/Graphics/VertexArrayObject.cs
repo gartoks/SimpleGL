@@ -139,11 +139,13 @@ public sealed class VertexArrayObject : IDisposable {
                 VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes.Values);
                 ResolvedMeshAttributes.Add(shaderAttribute, resolvedMeshAttribute);
             }
-            VertexBufferObject = GLHandler.CreateVbo(Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values), eBufferType.Dynamic);
+            float[] vboData = Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values);
+            VertexBufferObject = GLHandler.CreateVbo(vboData, eBufferType.Dynamic);
             VertexBufferObject.Bind();
             Shader.EnableVertexAttributes();
             Shader.AssignVertexAttributePointers();
             ElementBufferObject = GLHandler.CreateEBO(Mesh.Indices.ToArray(), eBufferType.Static);
+            VertexBufferObject.Release();
             GLHandler.ReleaseVao(this);
             Shader.Release();
 

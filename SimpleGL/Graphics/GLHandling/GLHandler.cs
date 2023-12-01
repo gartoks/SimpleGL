@@ -85,8 +85,8 @@ public static partial class GLHandler {   // TODO stencil
     }
 
     internal static void BeginRendering() {
-        if (_SupportedTextureUnits == -1)
-            _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureUnits);
+        //if (_SupportedTextureUnits == -1)
+        //    _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureImageUnits);
 
         lock (GlTaskQueue) {
             Queue<Task> tmp = GlTaskQueue;

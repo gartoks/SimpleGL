@@ -103,8 +103,8 @@ public sealed class Renderer {
 
         GLHandler.ReleaseVao(vao);
 
-        //foreach (Texture2D texture in Textures)
-        //    texture.Release();
+        foreach (Texture2D texture in vao.Textures)
+            texture.Release();
 
         //Shader.Release();
 

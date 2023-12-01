@@ -11,26 +11,23 @@ public class Sprite : IDisposable {
         set => VertexArrayObject.Shader = value;
     }
 
-    public Mesh Mesh {
-        get => VertexArrayObject.Mesh;
-        set => VertexArrayObject.Mesh = value;
-    }
-
     public Texture Texture {
         get => VertexArrayObject.Textures[0];
         set {
             VertexArrayObject.Textures[0] = value;
 
-            float[][] textureCoordinates = value.TextureCoordinates.Select(t => new float[] { t.x, t.y }).ToArray();
+            float[][] textureCoordinates = value.TextureCoordinates.ToArray();
             for (int y = 0; y < 2; y++) {
                 for (int x = 0; x < 2; x++) {
                     int i = x + y * 2;
                     VertexData va = Mesh.GetVertexData(i);
-                    va.SetAttributeData(Mesh.VertexAttributes["texCoords0"], textureCoordinates[/*x + y * 2*/i]);
+                    va.SetAttributeData(Mesh.VertexAttributes["texCoords0"], textureCoordinates[i]);
                 }
             }
         }
     }
+
+    private Mesh Mesh => VertexArrayObject.Mesh;
 
     public Color4 Tint { get; set; }
 
@@ -115,7 +112,7 @@ public class Sprite : IDisposable {
             (2, 1, 3)
         };
 
-        float[][] textureCoordinates = texture.TextureCoordinates.Select(t => new float[] { t.x, t.y }).ToArray();
+        float[][] textureCoordinates = texture.TextureCoordinates.ToArray();
 
         Mesh mesh = GraphicsHelper.CreateMesh(4, vertexAtributes, indices);
         for (int y = 0; y < 2; y++) {

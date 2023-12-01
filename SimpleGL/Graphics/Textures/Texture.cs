@@ -1,4 +1,5 @@
-﻿using SimpleGL.Graphics.GLHandling;
+﻿using OpenTK.Mathematics;
+using SimpleGL.Graphics.GLHandling;
 
 namespace SimpleGL.Graphics.Textures;
 public abstract class Texture : IDisposable {
@@ -51,7 +52,7 @@ public abstract class Texture : IDisposable {
 
     protected bool disposedValue;
 
-    public abstract IReadOnlyList<(float x, float y)> TextureCoordinates { get; }
+    public abstract Box2 TextureCoordinates { get; }
 
     protected internal Texture(int width, int height, int textureId) {
         Width = width;

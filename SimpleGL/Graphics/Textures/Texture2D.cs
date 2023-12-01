@@ -1,10 +1,11 @@
-﻿using StbImageSharp;
+﻿using OpenTK.Mathematics;
+using StbImageSharp;
 
 namespace SimpleGL.Graphics.Textures;
 public class Texture2D : Texture {
-    private static (float x, float y)[] TEXTURE_COORDS { get; } = new (float x, float y)[] { (0, 0), (1, 0), (0, 1), (1, 1) }; // TODO: test order
+    private static (float x, float y)[] TEXTURE_COORDS { get; } = new (float x, float y)[] { (0, 0), (1, 0), (0, 1), (1, 1) };
 
-    public override IReadOnlyList<(float x, float y)> TextureCoordinates => TEXTURE_COORDS;
+    public override Box2 TextureCoordinates => new Box2(0, 0, 1, 1);
 
     protected ImageResult Image { get; }
 

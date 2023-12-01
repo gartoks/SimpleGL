@@ -8,7 +8,7 @@ public static partial class GLHandler {
     internal static int SupportedTextureUnits {
         get {
             if (_SupportedTextureUnits == -1)
-                _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureUnits);
+                _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureImageUnits);
 
             return _SupportedTextureUnits;
         }
@@ -18,7 +18,7 @@ public static partial class GLHandler {
         textureId = GL.GenTexture();
 
         GL.BindTexture(TextureTarget.Texture2D, textureId);
-        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, image.Data);
+        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
 
         //GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
 

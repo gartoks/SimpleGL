@@ -4,17 +4,14 @@ namespace SimpleGL.Graphics.Textures;
 internal sealed class SubTexture : Texture {
     private TextureAtlas TextureAtlas { get; }
 
-    public override IReadOnlyList<(float x, float y)> TextureCoordinates { get; }
+    public override Box2 TextureCoordinates { get; }
 
     public SubTexture(TextureAtlas textureAtlas, Box2i bounds)
         : base(bounds.Size.X, bounds.Size.Y, textureAtlas.TextureId) {
         TextureAtlas = textureAtlas;
-        TextureCoordinates = new (float x, float y)[] { // TODO: test order
-            (bounds.Min.X / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height),
-            ((bounds.Min.X + bounds.Size.X) / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height),
-            (bounds.Min.X / (float)textureAtlas.Width, (bounds.Min.Y + bounds.Size.Y) / (float)textureAtlas.Height),
-            ((bounds.Min.X + bounds.Size.X) / (float)textureAtlas.Width, (bounds.Min.Y + bounds.Size.Y) / (float)textureAtlas.Height),
-        };
+        TextureCoordinates = new Box2(
+            bounds.Min.X / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height,
+            bounds.Max.X / (float)textureAtlas.Width, bounds.Max.Y / (float)textureAtlas.Height);
     }
 
     protected override void Dispose(bool disposing) {
