@@ -1,6 +1,9 @@
 ﻿using OpenTK.Mathematics;
+using OpenTK.Windowing.Desktop;
 using SimpleGL.Graphics.GLHandling;
+using SimpleGL.Graphics.Rendering;
 using SimpleGL.Graphics.Textures;
+using SixLabors.Fonts;
 using StbImageSharp;
 using System.Text;
 
@@ -10,15 +13,10 @@ public delegate VertexAttribute ShaderVertexAttributeResolver(VertexAttribute sh
 public delegate void ShaderUniformAssignmentHandler(Shader shader, ShaderUniform uniform);
 
 public static class GraphicsHelper {
-    /*private static GraphicsHandler instance;
-    internal static static GraphicsHandler Instance {
-        get => GraphicsHandler.instance;
-        private set { if (GraphicsHandler.instance != null) throw new InvalidOperationException("Only one instance per manager type permitted."); else instance = value; }
-    }
-
-    public static GraphicsHandler() {
-        Instance = this;
-    }*/
+    private static Texture2D? _DefaultTexture { get; set; }
+    private static TextureAtlas? _DefaultTextureAtlas { get; set; }
+    private static Shader? _DefaultUntexturedShader { get; set; }
+    private static Shader? _DefaultTexturedShader { get; set; }
 
     public static bool IsGLThread() => GLHandler.RenderThread == Thread.CurrentThread;
 
@@ -26,6 +24,10 @@ public static class GraphicsHelper {
 
     public static Mesh CreateMesh(int vertexCount, VertexAttribute[] vertexAttributes, (uint idx0, uint idx1, uint idx2)[] clockwiseTriangles) {
         return new Mesh(vertexCount, vertexAttributes, clockwiseTriangles);
+    }
+
+    public static MeshFont CreateMeshFont(FontFamily fontFamily, float fontSize, Shader shader) {
+        return new MeshFont(new Font(fontFamily, fontSize), shader);
     }
 
     /*internal static Mesh CreateDefaultMesh() {  // TODO maybe cache default mesh, but then one could modify its values
@@ -56,6 +58,20 @@ public static class GraphicsHelper {
         return mesh;
     }*/
 
+    public static TextureAtlas CreateDefaultTextureAtlas() {
+        if (_DefaultTextureAtlas != null)
+            return _DefaultTextureAtlas;
+
+        ImageResult image = new ImageResult() {
+            Comp = ColorComponents.RedGreenBlueAlpha,
+            SourceComp = ColorComponents.RedGreenBlueAlpha,
+            Data = new byte[] { 255, 255, 255, 255 },
+        };
+
+        _DefaultTextureAtlas = CreateTextureAtlas(image, new Dictionary<string, Box2i>());
+        return _DefaultTextureAtlas;
+    }
+
     public static TextureAtlas CreateTextureAtlas(ImageResult image, IReadOnlyDictionary<string, Box2i> subTextureBounds) {
         int textureId = ExecuteGLFunction(() => {
             GLHandler.InitializeTexture(image, out int texId);
@@ -65,14 +81,19 @@ public static class GraphicsHelper {
         return new TextureAtlas(image, textureId, subTextureBounds);
     }
 
-    public static TextureAtlas CreateDefaultTextureAtlas() {  // TODO maybe cache default texture, but then one could modify its render settings
+    public static Texture2D CreateDefaultTexture() {
+        if (_DefaultTexture != null)
+            return _DefaultTexture;
+
         ImageResult image = new ImageResult() {
             Comp = ColorComponents.RedGreenBlueAlpha,
             SourceComp = ColorComponents.RedGreenBlueAlpha,
             Data = new byte[] { 255, 255, 255, 255 },
         };
 
-        return CreateTextureAtlas(image, new Dictionary<string, Box2i>());
+        _DefaultTexture = CreateTexture(image);
+
+        return _DefaultTexture;
     }
 
     public static Texture2D CreateTexture(ImageResult image) {
@@ -84,20 +105,28 @@ public static class GraphicsHelper {
         return new Texture2D(image, textureId);
     }
 
-    public static Texture2D CreateDefaultTexture() {  // TODO maybe cache default texture, but then one could modify its render settings
-        ImageResult image = new ImageResult() {
-            Comp = ColorComponents.RedGreenBlueAlpha,
-            SourceComp = ColorComponents.RedGreenBlueAlpha,
-            Data = new byte[] { 255, 255, 255, 255 },
-        };
-
-        return CreateTexture(image);
-    }
-
     internal static void DeleteTexture(Texture texture) {
         ExecuteGLFunction(() => {
             GLHandler.DeleteTexture(texture);
         });
+    }
+
+    public static Shader CreateDefaultUntexturedShader() {
+        if (_DefaultUntexturedShader != null)
+            return _DefaultUntexturedShader;
+
+        CreateUntexturedPassthroughShader(true, out string vS, out string fS);
+        _DefaultUntexturedShader = CreateShader(vS, fS);
+        return _DefaultUntexturedShader;
+    }
+
+    public static Shader CreateDefaultTexturedShader() {
+        if (_DefaultTexturedShader != null)
+            return _DefaultTexturedShader;
+
+        CreateTexturedPassthroughShader(true, 1, out string vS, out string fS);
+        _DefaultTexturedShader = CreateShader(vS, fS);
+        return _DefaultTexturedShader;
     }
 
     public static Shader CreateShader(string vertexShaderSource, string fragmentShaderSource) {
@@ -146,6 +175,12 @@ public static class GraphicsHelper {
         });
 
         return CreateShader(vS, fS);
+    }
+
+    public static IReadOnlyList<MonitorInfo> GetMonitors() {
+        return ExecuteGLFunction(() => {
+            return Monitors.GetMonitors();
+        });
     }
 
     public const string DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME = "u_viewProjectionMatrix";
@@ -266,7 +301,7 @@ public static class GraphicsHelper {
         fragmentShaderSource = sb_frag.ToString();
     }
 
-    private static T ExecuteGLFunction<T>(Func<T> func) {
+    internal static T ExecuteGLFunction<T>(Func<T> func) {
         if (IsGLThread())
             return func();
 
@@ -276,7 +311,7 @@ public static class GraphicsHelper {
         return task.Result;
     }
 
-    private static void ExecuteGLFunction(Action action) {
+    internal static void ExecuteGLFunction(Action action) {
         if (IsGLThread())
             action();
 

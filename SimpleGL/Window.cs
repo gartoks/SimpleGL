@@ -1,6 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using SimpleGL.Graphics;
 using SimpleGL.Graphics.GLHandling;
 using System.ComponentModel;
 
@@ -57,6 +58,10 @@ public sealed class Window : GameWindow {
     protected override void OnKeyUp(KeyboardKeyEventArgs e) {
         base.OnKeyUp(e);
     }*/
+
+    public MonitorInfo GetMonitor() {
+        return GraphicsHelper.ExecuteGLFunction(() => Monitors.GetMonitorFromWindow(this));
+    }
 
     protected override void OnResize(ResizeEventArgs e) {
         base.OnResize(e);

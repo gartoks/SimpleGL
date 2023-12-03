@@ -42,7 +42,7 @@ public class MeshFont : IDisposable {
 
     private bool disposedValue;
 
-    public MeshFont(Font font, Shader shader) {
+    internal MeshFont(Font font, Shader shader) {
         Font = font;
         _Shader = shader;
 

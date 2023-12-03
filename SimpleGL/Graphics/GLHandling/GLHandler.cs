@@ -84,9 +84,9 @@ public static partial class GLHandler {   // TODO stencil
         }
     }
 
-    internal static void BeginRendering() {
-        //if (_SupportedTextureUnits == -1)
-        //    _SupportedTextureUnits = GL.GetInteger(GetPName.MaxTextureImageUnits);
+    internal static void ProcessQueue() {
+        if (Thread.CurrentThread != RenderThread)
+            throw new InvalidOperationException("Cannot process GL queue from non-render thread.");
 
         lock (GlTaskQueue) {
             Queue<Task> tmp = GlTaskQueue;
@@ -97,7 +97,9 @@ public static partial class GLHandler {   // TODO stencil
         foreach (Task glTask in GlTaskQueue_swap)
             glTask.RunSynchronously();
         GlTaskQueue_swap.Clear();
+    }
 
+    internal static void BeginRendering() {
         //TransformStack.Clear();
         //GL.ClearDepth(1f);  // TODO maybe allow different values
         GL.Clear(_ClearBufferMask);

@@ -44,6 +44,10 @@ public sealed class ThreadManager {
         ThreadSyncEvent.Wait();
     }
 
+    internal bool IsSyncEventSet() {
+        return ThreadSyncEvent.IsSet;
+    }
+
     internal void ResetSyncEvent() {
         ThreadSyncEvent.Reset(Threads.Count);
     }

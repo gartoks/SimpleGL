@@ -12,6 +12,23 @@ public static class Primitives {
     private static RectanglePrimitive RectanglePrimitive { get; set; }
     private static Sprite Sprite { get; set; }
 
+    public static void DrawText(MeshFont font, string text, Color4 color, Vector2 position, Vector2 pivot, float rotation, int zIndex) {
+        if (!Renderer.HasActiveRenderer)
+            throw new InvalidOperationException("No renderer is active.");
+
+        ValidatePrimitives();
+
+        Action preRenderCallback = () => {
+            font.Transform.Position = position;
+            //font.Transform.Scale = size;
+            font.Transform.Pivot = pivot;
+            font.Transform.Rotation = rotation;
+            font.Tint = color;
+        };
+
+        font.Render(text, zIndex, preRenderCallback);
+    }
+
     public static void DrawSprite(Vector2 position, Vector2 size, Vector2 pivot, float rotation, int zIndex, Texture texture, Color4 color) {
         if (!Renderer.HasActiveRenderer)
             throw new InvalidOperationException("No renderer is active.");
@@ -69,6 +86,14 @@ public static class Primitives {
         }
     }
 
+    public static void DrawCircleLines(Vector2 position, float radius, Vector2 pivot, int zIndex, Color4 color) {
+        // TODO
+    }
+
+    public static void DrawCircle(Vector2 position, float radius, Vector2 pivot, int zIndex, Color4 color) {
+        // TODO
+    }
+
     public static void DrawLine(Vector2 start, Vector2 end, float thickness, int zIndex, Color4 color) {
         if (!Renderer.HasActiveRenderer)
             throw new InvalidOperationException("No renderer is active.");
@@ -102,13 +127,11 @@ public static class Primitives {
         // TODO implement custom shader that can draw circles too
 
         if (UntexturedShader == null) {
-            GraphicsHelper.CreateUntexturedPassthroughShader(true, out string vertexShader, out string fragmentShader);
-            UntexturedShader = GraphicsHelper.CreateShader(vertexShader, fragmentShader);
+            UntexturedShader = GraphicsHelper.CreateDefaultUntexturedShader();
         }
 
         if (TextureShader == null) {
-            GraphicsHelper.CreateTexturedPassthroughShader(true, 1, out string textureVertexShader, out string textureFragmentShader);
-            TextureShader = GraphicsHelper.CreateShader(textureVertexShader, textureFragmentShader);
+            TextureShader = GraphicsHelper.CreateDefaultTexturedShader();
         }
 
         if (Texture == null) {

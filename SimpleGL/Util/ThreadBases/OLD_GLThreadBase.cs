@@ -1,4 +1,4 @@
-﻿using SimpleGL.Graphics.GLHandling;
+﻿/*using SimpleGL.Graphics.GLHandling;
 using System.Diagnostics;
 
 namespace SimpleGL.Util.ThreadBases;
@@ -34,3 +34,4 @@ internal sealed class GLThreadBase : ThreadBase {
         Window.Dispose();
     }
 }
+*/

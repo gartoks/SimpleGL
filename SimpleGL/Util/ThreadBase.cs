@@ -17,6 +17,7 @@ public abstract class ThreadBase {
         Stopwatch = new Stopwatch();
 
         Thread = new Thread(Run);
+        Thread.Name = name;
         Tps = ticksPerSecond;
     }
 

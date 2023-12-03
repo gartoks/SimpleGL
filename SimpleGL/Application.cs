@@ -50,6 +50,10 @@ public abstract class Application {
 
         State = eApplicationState.Running;
         ThreadManager.Start();
+
+        while (!ThreadManager.IsSyncEventSet())
+            GLHandler.ProcessQueue();
+
         ThreadManager.WaitForSyncEvent();
 
         Window.Run();
