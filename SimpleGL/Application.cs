@@ -51,12 +51,9 @@ public abstract class Application {
         State = eApplicationState.Running;
         ThreadManager.Start();
 
-        while (!ThreadManager.IsSyncEventSet())
-            GLHandler.ProcessQueue();
+        Window.Run();
 
         ThreadManager.WaitForSyncEvent();
-
-        Window.Run();
 
         ThreadManager.Join();
         Window.Dispose();

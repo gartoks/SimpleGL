@@ -11,15 +11,20 @@ public sealed class Window : GameWindow {
     private float TpsTime { get; set; }
     private int TpsCounter { get; set; }
 
+    private bool IsStarted { get; set; }
+    private bool IsLoading { get; set; }
+
     internal Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)
         : base(gameWindowSettings, nativeWindowSettings) {
+
+        IsLoading = true;
+        IsStarted = false;
     }
 
     protected override void OnLoad() {
         base.OnLoad();
 
         GLHandler.Viewport = new Box2i(0, 0, ClientSize.X, ClientSize.Y);
-        Application.Instance.OnRenderStart();
     }
 
     protected override void OnUnload() {
@@ -30,6 +35,21 @@ public sealed class Window : GameWindow {
 
     protected override void OnRenderFrame(FrameEventArgs args) {
         base.OnRenderFrame(args);
+
+        GLHandler.ProcessQueue();
+
+        if (!IsStarted) {
+            Application.Instance.OnRenderStart();
+            IsStarted = true;
+        }
+
+        if (IsLoading) {
+            if (!Application.ThreadManager.IsSyncEventSet())
+                return;
+
+            IsLoading = false;
+            return;
+        }
 
         float deltaTime = (float)args.Time;
 

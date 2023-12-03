@@ -47,8 +47,7 @@ internal sealed class TestApplication : Application {
 
         FontCollection fontCollection = new FontCollection();
         FontFamily fontFamily = fontCollection.Add("Resources/New Bread.ttf");
-        Font font = fontFamily.CreateFont(4, FontStyle.Regular);
-        Font = new MeshFont(font, Shader);
+        Font = GraphicsHelper.CreateMeshFont(fontFamily, 4, Shader);
         Font.Transform.ZIndex = 4;
         Font.Transform.Position = new Vector2(0, 0f);
         Font.Transform.Pivot = new Vector2(0f, 0f);
