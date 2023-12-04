@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 namespace SimpleGL.Graphics.Rendering;
 public class MeshFont : IDisposable {
-    public Font Font { get; }
+    public FontData Font { get; }
     public float FontSize => Font.Size;
 
     private Shader _Shader { get; set; }
@@ -42,8 +42,8 @@ public class MeshFont : IDisposable {
 
     private bool disposedValue;
 
-    internal MeshFont(Font font, Shader shader) {
-        Font = font;
+    internal MeshFont(FontData fontdata, Shader shader) {
+        Font = fontdata;
         _Shader = shader;
 
         Tint = Color4.White;
@@ -51,7 +51,7 @@ public class MeshFont : IDisposable {
 
         _ShaderUniformAssignmentHandler = AssignShaderUniform;
 
-        TextOptions = new TextOptions(font);
+        TextOptions = new TextOptions(Font.Font);
 
         GlyphVaos = new();
     }
@@ -116,10 +116,15 @@ public class MeshFont : IDisposable {
     }
 
     internal void Render(string text, int zIndex, Action preRenderCallback) {
+        text = text.Replace('\0', '\r').Replace("\r", "");
+
         ValidateGlyphVaos(text);
 
-        foreach (char c in text)
-            GlyphVaos[c].Render(zIndex, preRenderCallback);
+        foreach (char c in text) {
+            if (c == ' ')
+                continue;
+            GlyphVaos[c]?.Render(zIndex, preRenderCallback);
+        }
     }
 
     private void ValidateGlyphVaos(string text) {
@@ -162,7 +167,7 @@ public class MeshFont : IDisposable {
         if (vertices.Length == 0)
             return null;
 
-        Debug.WriteLine($"{Font.Name} '{c}' {vertices.Length} {triangles.Length}");
+        Debug.WriteLine($"{Font.Font.Name} '{c}' {vertices.Length} {triangles.Length}");
         Mesh mesh = GraphicsHelper.CreateMesh(vertices.Length, vertexAtributes, triangles);
         for (int i = 0; i < vertices.Length; i++) {
             VertexData va = mesh.GetVertexData(i);

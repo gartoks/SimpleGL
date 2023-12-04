@@ -6,9 +6,23 @@ using System.Diagnostics;
 using Path = SimpleGL.Util.Math.Path;
 
 namespace SimpleGL.Util;
+
+public record FontFamilyData(FontFamily Font, bool IsTTF);
+public record FontData {
+    public FontFamilyData FontFamily { get; }
+    public float Size { get; }
+    public Font Font { get; }
+
+    public FontData(FontFamilyData fontFamily, float size) {
+        FontFamily = fontFamily;
+        Size = size;
+        Font = new Font(fontFamily.Font, size);
+    }
+}
+
 public static class TextMeshGenerator {
-    public static (Vector2[] vertices, (uint i0, uint i1, uint i2)[] triangles) ConvertToMesh(Font font, string text) {
-        IReadOnlyList<(char character, IReadOnlyList<Path> paths)> glyphPaths = ConvertToPaths(font, text);
+    public static (Vector2[] vertices, (uint i0, uint i1, uint i2)[] triangles) ConvertToMesh(FontData fontData, string text) {
+        IReadOnlyList<(char character, IReadOnlyList<Path> paths)> glyphPaths = ConvertToPaths(fontData, text);
 
         List<Vector2> vertices = new();
         List<(uint i0, uint i1, uint i2)> triangles = new();
@@ -16,7 +30,21 @@ public static class TextMeshGenerator {
             char character = item.character;
             IReadOnlyList<Path> paths = item.paths;
 
-            IReadOnlyList<(Path shape, Path[] holes)> shapePaths = SeparatePaths(paths);
+            if (paths.Count == 1 && !paths[0].IsClockwise) {
+                paths = new[] { paths[0].Reverse() };
+            }
+
+            IReadOnlyList<(Path shape, Path[] holes)> shapePaths;
+
+            if (character == 'H') {
+                File.WriteAllLines(@"G:\Coding\Python\Misc\points.txt", paths.First().Select(p => $"{p.X} {p.Y}").ToArray());
+            }
+
+            try {
+                shapePaths = SeparatePaths(paths);
+            } catch (Exception) {
+                shapePaths = new List<(Path shape, Path[] holes)>();
+            }
 
             foreach ((Path shape, Path[] holes) shapePath in shapePaths) {
                 MeshTriangulation.Triangulate(shapePath.shape, shapePath.holes, out Vector2[]? shapeVertices, out (uint i0, uint i1, uint i2)[] shapeTrianges);
@@ -30,7 +58,7 @@ public static class TextMeshGenerator {
         return (vertices.ToArray(), triangles.ToArray());
     }
 
-    public static IReadOnlyList<(char character, IReadOnlyList<Path> paths)> ConvertToPaths(Font font, string text) {
+    public static IReadOnlyList<(char character, IReadOnlyList<Path> paths)> ConvertToPaths(FontData font, string text) {
         PathFindingGlyphRenderer renderer = new PathFindingGlyphRenderer(font.Size);
         return renderer.ConvertToPaths(font, text);
     }
@@ -40,7 +68,7 @@ public static class TextMeshGenerator {
         List<Path> holes = paths.Where(p => !p.IsClockwise).ToList();
 
         if (shapes.Count == 0)
-            throw new Exception("No shapes found.");
+            throw new InvalidOperationException("No shapes found.");
 
         return shapes.Select(s => (s, holes.Where(h => h.All(hp => MathUtils.IsPointInPolygon(s, hp))).ToArray())).ToList();
     }
@@ -66,14 +94,18 @@ public static class TextMeshGenerator {
             CurrentPoint = Vector2.Zero;
         }
 
-        public IReadOnlyList<(char character, IReadOnlyList<Path>)> ConvertToPaths(Font font, string text) {
-            this.Render(text, new TextOptions(font));
+        public IReadOnlyList<(char character, IReadOnlyList<Path>)> ConvertToPaths(FontData fontData, string text) {
+            this.Render(text, new TextOptions(fontData.Font));
 
-            return GlyphPaths.Select(ConvertGlyphPath).ToList();
+            return GlyphPaths.Select(gp => ConvertGlyphPath(gp, fontData)).ToList();
         }
 
-        private static (char character, IReadOnlyList<Path> paths) ConvertGlyphPath((char character, IReadOnlyList<Path> paths) gp) {
-            return (gp.character, gp.paths.Select(p => p.Reverse()).ToList());
+        private static (char character, IReadOnlyList<Path> paths) ConvertGlyphPath((char character, IReadOnlyList<Path> paths) gp, FontData fontData) {
+            if (fontData.FontFamily.IsTTF)
+                //return (gp.character, gp.paths.Select(p => p.Reverse()).ToList());
+                return (gp.character, gp.paths.Select(p => p.Reverse()).ToList());
+            else
+                return (gp.character, gp.paths.ToList());
         }
 
         public void BeginText(in FontRectangle bounds) {
