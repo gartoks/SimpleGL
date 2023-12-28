@@ -3,7 +3,7 @@ using OpenTK.Windowing.Desktop;
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Graphics.Rendering;
 using SimpleGL.Graphics.Textures;
-using SixLabors.Fonts;
+using SimpleGL.Util;
 using StbImageSharp;
 using System.Text;
 
@@ -26,8 +26,8 @@ public static class GraphicsHelper {
         return new Mesh(vertexCount, vertexAttributes, clockwiseTriangles);
     }
 
-    public static MeshFont CreateMeshFont(FontFamily fontFamily, float fontSize) {
-        return new MeshFont(new Font(fontFamily, fontSize));
+    public static MeshFont CreateMeshFont(FontData font, Shader shader) {
+        return new MeshFont(font, shader);
     }
 
     /*internal static Mesh CreateDefaultMesh() {  // TODO maybe cache default mesh, but then one could modify its values

@@ -1,6 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Graphics.Textures;
+using SimpleGL.Util;
 
 namespace SimpleGL.Graphics;
 public enum UniformType { Float, FloatVector2, FloatVector3, FloatVector4, /*Int,*/ Texture2D, Matrix2x2, Matrix3x3, Matrix4x4 }
@@ -126,14 +127,17 @@ public sealed class ShaderUniform : IEquatable<ShaderUniform?> {
         if (!GLHandler.IsRendering || !GLHandler.IsShaderBound(Shader))
             throw new InvalidOperationException("Cannot set shader uniform while not rendering or while shader is not bound.");
 
+        if (!texture.IsBound) { // TODO fix
+            Log.WriteLine($"Texture is not bound: {texture.TextureId}");
+            texture.Bind();
+        }
+
         int texUnit = GLHandler.AssignedTextureUnit(texture);
         if (texUnit < 0)
             throw new InvalidOperationException("Cannot set shader uniform to texture that is not bound.");
 
         GLHandler.SetShaderUniform(UniformLocation, texUnit);
     }
-
-
 
     public override string ToString() {
         return $"{Name} [{Type}]:{ComponentCount}";

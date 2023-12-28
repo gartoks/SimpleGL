@@ -8,8 +8,7 @@ using System.Diagnostics;
 namespace SimpleGL.Graphics.Rendering;
 public class MeshFont : IDisposable {
     public string Key => MeshFontLoader.GetKey(Font.Family.Name, FontSize);
-
-    public Font Font { get; }
+    public FontData Font { get; }
     public float FontSize => Font.Size;
 
     private TextOptions TextOptions { get; }
@@ -19,12 +18,12 @@ public class MeshFont : IDisposable {
 
     private bool disposedValue;
 
-    internal MeshFont(Font font) {
-        Font = font;
+    internal MeshFont(FontData fontdata) {
+        Font = fontdata;
 
-        TextOptions = new TextOptions(font);
         DefaultMaterial = Material.CreateDefaultMaterial(0);
-        GlyphObjects = new();
+        TextOptions = new TextOptions(Font.Font);
+        GlyphVaos = new();
     }
 
     // override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
@@ -103,7 +102,7 @@ public class MeshFont : IDisposable {
         if (vertices.Length == 0)
             return null;
 
-        Debug.WriteLine($"{Font.Name} '{c}' {vertices.Length} {triangles.Length}");
+        Debug.WriteLine($"{Font.Font.Name} '{c}' {vertices.Length} {triangles.Length}");
         Mesh mesh = GraphicsHelper.CreateMesh(vertices.Length, vertexAtributes, triangles);
         for (int i = 0; i < vertices.Length; i++) {
             VertexData va = mesh.GetVertexData(i);
