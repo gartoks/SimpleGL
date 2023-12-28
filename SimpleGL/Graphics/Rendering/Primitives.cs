@@ -1,4 +1,5 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGL.Game.Nodes;
 using SimpleGL.Graphics.Textures;
 using SimpleGL.Util.Extensions;
 using SimpleGL.Util.Math;

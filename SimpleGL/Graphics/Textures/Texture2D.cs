@@ -9,7 +9,7 @@ public class Texture2D : Texture {
 
     protected ImageResult Image { get; }
 
-    internal Texture2D(ImageResult image, int textureId)
-        : base(image.Width, image.Height, textureId) {
+    internal Texture2D(string key, ImageResult image, int textureId)
+        : base(key, image.Width, image.Height, textureId) {
     }
 }

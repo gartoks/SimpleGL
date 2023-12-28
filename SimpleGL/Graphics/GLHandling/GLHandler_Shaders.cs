@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace SimpleGL.Graphics.GLHandling;
 public static partial class GLHandler {
-    internal static Shader CreateShader(string vertexShaderSource, string fragmentShaderSource) {
+    internal static Shader? CreateShader(string key, string vertexShaderSource, string fragmentShaderSource) {
 
         int programHandle = 0;
         int vertexShaderHandle = CompileShader(vertexShaderSource, ShaderType.VertexShader);
@@ -32,19 +32,38 @@ public static partial class GLHandler {
             Log.WriteLine("Could not retrieve shader uniforms.", eLogType.Error);
             GL.DeleteProgram(programHandle);
             GL.DeleteShader(vertexShaderHandle);
-            GL.DeleteShader(fragmentShaderHandle); return null;
+            GL.DeleteShader(fragmentShaderHandle);
+            return null;
         }
 
         if (!TryRetrieveShaderAttributes(programHandle, out attributes)) {
             Log.WriteLine("Could not retrieve shader attributes.", eLogType.Error);
             GL.DeleteProgram(programHandle);
             GL.DeleteShader(vertexShaderHandle);
-            GL.DeleteShader(fragmentShaderHandle); return null;
+            GL.DeleteShader(fragmentShaderHandle);
+            return null;
         }
 
         stride = attributes.Values.Sum(sva => sva.ComponentCount) * sizeof(float);
 
-        return new Shader(vertexShaderSource, fragmentShaderSource, programHandle, uniforms, attributes, stride);
+        ShaderUniform? uniform;
+        if (!uniforms.TryGetValue(GraphicsHelper.DEFAULT_SHADER_VIEWPROJECTIONMATRIX_UNIFORM_NAME, out uniform) || uniform.Type != UniformType.Matrix4x4) {
+            Log.WriteLine("Shader does not contain uniform 'u_viewProjectionMatrix'.", eLogType.Error);
+            GL.DeleteProgram(programHandle);
+            GL.DeleteShader(vertexShaderHandle);
+            GL.DeleteShader(fragmentShaderHandle);
+            return null;
+        }
+
+        if (!uniforms.TryGetValue(GraphicsHelper.DEFAULT_SHADER_MODELMATRIX_UNIFORM_NAME, out uniform) || uniform.Type != UniformType.Matrix4x4) {
+            Log.WriteLine("Shader does not contain uniform 'u_viewProjectionMatrix'.", eLogType.Error);
+            GL.DeleteProgram(programHandle);
+            GL.DeleteShader(vertexShaderHandle);
+            GL.DeleteShader(fragmentShaderHandle);
+            return null;
+        }
+
+        return new Shader(key, vertexShaderSource, fragmentShaderSource, programHandle, uniforms, attributes, stride);
     }
 
     private static int CreateShaderProgram(int vertexShaderHandle, int fragmentShaderHandle/*, int geometryShaderHandle*/) {

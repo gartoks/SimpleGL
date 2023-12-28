@@ -2,12 +2,14 @@
 
 namespace SimpleGL.Graphics.Textures;
 internal sealed class SubTexture : Texture {
+    public override string Key => $"{TextureAtlas.Key}$${base.Key}";
+
     private TextureAtlas TextureAtlas { get; }
 
     public override Box2 TextureCoordinates { get; }
 
-    public SubTexture(TextureAtlas textureAtlas, Box2i bounds)
-        : base(bounds.Size.X, bounds.Size.Y, textureAtlas.TextureId) {
+    public SubTexture(string subKey, TextureAtlas textureAtlas, Box2i bounds)
+        : base(subKey, bounds.Size.X, bounds.Size.Y, textureAtlas.TextureId) {
         TextureAtlas = textureAtlas;
         TextureCoordinates = new Box2(
             bounds.Min.X / (float)textureAtlas.Width, bounds.Min.Y / (float)textureAtlas.Height,

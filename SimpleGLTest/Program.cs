@@ -1,11 +1,9 @@
-﻿using SimpleGL;
-
-namespace SimpleGLTest;
+﻿namespace SimpleGLTest;
 
 internal class Program {
     static void Main(string[] args) {
 
-        Application.Initialize(new TestApplication());
-        Application.Start();
+        //Application.Initialize(new TestApplication());
+        //Application.Start();
     }
 }

@@ -26,8 +26,8 @@ public static class GraphicsHelper {
         return new Mesh(vertexCount, vertexAttributes, clockwiseTriangles);
     }
 
-    public static MeshFont CreateMeshFont(FontFamily fontFamily, float fontSize, Shader shader) {
-        return new MeshFont(new Font(fontFamily, fontSize), shader);
+    public static MeshFont CreateMeshFont(FontFamily fontFamily, float fontSize) {
+        return new MeshFont(new Font(fontFamily, fontSize));
     }
 
     /*internal static Mesh CreateDefaultMesh() {  // TODO maybe cache default mesh, but then one could modify its values
@@ -68,17 +68,17 @@ public static class GraphicsHelper {
             Data = new byte[] { 255, 255, 255, 255 },
         };
 
-        _DefaultTextureAtlas = CreateTextureAtlas(image, new Dictionary<string, Box2i>());
+        _DefaultTextureAtlas = CreateTextureAtlas("__DEFAULT_TEXTURE_ATLAS__", image, new Dictionary<string, Box2i>());
         return _DefaultTextureAtlas;
     }
 
-    public static TextureAtlas CreateTextureAtlas(ImageResult image, IReadOnlyDictionary<string, Box2i> subTextureBounds) {
+    public static TextureAtlas CreateTextureAtlas(string key, ImageResult image, IReadOnlyDictionary<string, Box2i> subTextureBounds) {
         int textureId = ExecuteGLFunction(() => {
             GLHandler.InitializeTexture(image, out int texId);
             return texId;
         });
 
-        return new TextureAtlas(image, textureId, subTextureBounds);
+        return new TextureAtlas(key, image, textureId, subTextureBounds);
     }
 
     public static Texture2D CreateDefaultTexture() {
@@ -91,18 +91,18 @@ public static class GraphicsHelper {
             Data = new byte[] { 255, 255, 255, 255 },
         };
 
-        _DefaultTexture = CreateTexture(image);
+        _DefaultTexture = CreateTexture("__DEFAULT_TEXTURE__", image);
 
         return _DefaultTexture;
     }
 
-    public static Texture2D CreateTexture(ImageResult image) {
+    public static Texture2D CreateTexture(string key, ImageResult image) {
         int textureId = ExecuteGLFunction(() => {
             GLHandler.InitializeTexture(image, out int texId);
             return texId;
         });
 
-        return new Texture2D(image, textureId);
+        return new Texture2D(key, image, textureId);
     }
 
     internal static void DeleteTexture(Texture texture) {
@@ -116,7 +116,7 @@ public static class GraphicsHelper {
             return _DefaultUntexturedShader;
 
         CreateUntexturedPassthroughShader(true, out string vS, out string fS);
-        _DefaultUntexturedShader = CreateShader(vS, fS);
+        _DefaultUntexturedShader = CreateShader($"__DEFAULT_SHADER_0__", vS, fS);
         return _DefaultUntexturedShader;
     }
 
@@ -125,13 +125,13 @@ public static class GraphicsHelper {
             return _DefaultTexturedShader;
 
         CreateTexturedPassthroughShader(true, 1, out string vS, out string fS);
-        _DefaultTexturedShader = CreateShader(vS, fS);
+        _DefaultTexturedShader = CreateShader($"__DEFAULT_SHADER_1__", vS, fS);
         return _DefaultTexturedShader;
     }
 
-    public static Shader CreateShader(string vertexShaderSource, string fragmentShaderSource) {
+    public static Shader? CreateShader(string key, string vertexShaderSource, string fragmentShaderSource) {
         return ExecuteGLFunction(() => {
-            return GLHandler.CreateShader(vertexShaderSource, fragmentShaderSource);
+            return GLHandler.CreateShader(key, vertexShaderSource, fragmentShaderSource);
         });
     }
 
@@ -141,10 +141,9 @@ public static class GraphicsHelper {
         });
     }
 
-    public static VertexArrayObject CreateVertexArrayObject(ShaderVertexAttributeResolver attributeResolver, ShaderUniformAssignmentHandler shaderUniformAssignmentHandler, Shader shader, Mesh mesh, params Texture[] textures) {
+    public static VertexArrayObject CreateVertexArrayObject() {
         int vaoId = ExecuteGLFunction(GLHandler.CreateVao);
-
-        return new VertexArrayObject(vaoId, attributeResolver, shaderUniformAssignmentHandler, shader, mesh, textures);
+        return new VertexArrayObject(vaoId);
     }
 
     /*internal static VertexArrayObject CreateRenderable(ShaderVertexAttributeResolver attributeResolver, ShaderUniformAssignmentHandler shaderUniformAssignmentHandler) {
@@ -174,7 +173,7 @@ public static class GraphicsHelper {
             return (vS, fS);
         });
 
-        return CreateShader(vS, fS);
+        return CreateShader($"__DEFAULT_SHADER_{textureCount}__", vS, fS);
     }
 
     public static IReadOnlyList<MonitorInfo> GetMonitors() {

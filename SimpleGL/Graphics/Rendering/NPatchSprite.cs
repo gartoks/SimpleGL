@@ -1,6 +1,6 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGL.Game.Util;
 using SimpleGL.Graphics.Textures;
-using SimpleGL.Util;
 using SimpleGL.Util.Extensions;
 
 namespace SimpleGL.Graphics.Rendering;

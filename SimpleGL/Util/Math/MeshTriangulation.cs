@@ -26,46 +26,61 @@ public static class MeshTriangulation {
         newVertices = vertices.ToArray();
 
         if (!TryFindTriangles(vertices, out triangles))
-            throw new Exception("Could not find triangles.");
+            throw new InvalidOperationException("Could not find triangles.");
     }
 
-    private static bool TryFindTriangles(List<Vector2> vertices, out (uint i0, uint i1, uint i2)[] triangles) {
+    private static bool TryFindTriangles(IReadOnlyList<Vector2> vertices, out (uint i0, uint i1, uint i2)[] triangles) {
         //Debug.WriteLine(string.Join("\n", vertices.Select(v => $"{v.X} {v.Y}")));
+        //verts.Reverse();
 
         triangles = new (uint i0, uint i1, uint i2)[0];
 
-        List<int> vertexIndices = Enumerable.Range(0, vertices.Count).ToList();
+        List<(uint i0, uint i1, uint i2)> trianglesList;
+        int startIndex = 0;
+        while (!TryTriangulate(vertices, startIndex, out trianglesList)) {
+            Debug.WriteLine("Failed to triangulate, retrying...");
+            startIndex = new System.Random().Next(vertices.Count);
+        }
 
-        List<(uint i0, uint i1, uint i2)> trianglesList = new();
-        while (vertices.Count > 2) {
+        triangles = trianglesList.ToArray();
+        return true;
+    }
+
+    private static bool TryTriangulate(IReadOnlyList<Vector2> vertices, int startIndex, out List<(uint i0, uint i1, uint i2)> trianglesList) {
+        List<Vector2> verts = new List<Vector2>(vertices);
+        List<int> vertexIndices = Enumerable.Range(0, vertices.Count).ToList();
+        trianglesList = new();
+
+        while (verts.Count > 2) {
             bool foundTriangle = false;
 
-            for (int i = 0; i < vertices.Count; i++) {
-                Vector2 v0 = vertices[i];
-                Vector2 v1 = vertices[(i + 1) % vertices.Count];
-                Vector2 v2 = vertices[(i + 2) % vertices.Count];
+            for (int j = 0; j < verts.Count; j++) {
+                int i = (startIndex + j) % verts.Count;
+
+                Vector2 v0 = verts[i];
+                Vector2 v1 = verts[(i + 1) % verts.Count];
+                Vector2 v2 = verts[(i + 2) % verts.Count];
 
                 if (!IsLocallyClockwiseBend(v0, v1, v2))
                     continue;
 
-                if (TriangleContainsVertex(v0, v1, v2, vertices))
+                if (TriangleContainsVertex(v0, v1, v2, verts))
                     continue;
 
-                trianglesList.Add(((uint)vertexIndices[i], (uint)vertexIndices[(i + 1) % vertices.Count], (uint)vertexIndices[(i + 2) % vertices.Count]));
-                vertices.RemoveAt((i + 1) % vertices.Count);
-                vertexIndices.RemoveAt((i + 1) % vertices.Count);
+                trianglesList.Add(((uint)vertexIndices[i], (uint)vertexIndices[(i + 1) % verts.Count], (uint)vertexIndices[(i + 2) % verts.Count]));
+                verts.RemoveAt((i + 1) % verts.Count);
+                vertexIndices.RemoveAt((i + 1) % verts.Count);
 
                 foundTriangle = true;
                 break;
             }
 
             if (!foundTriangle) {
-                Debug.WriteLine(string.Join("\n", vertices.Select(v => $"{v.X} {v.Y}")));
+                //Debug.WriteLine(string.Join("\n", verts.Select(v => $"{v.X} {v.Y}")));
                 return false;
             }
         }
 
-        triangles = trianglesList.ToArray();
         return true;
     }
 
@@ -148,7 +163,6 @@ public static class MeshTriangulation {
     }
 
     private static bool IntersectsLine(Vector2 p0, Vector2 p1, List<Vector2> vertices, Path hole) {
-
         for (int vI = 1; vI <= vertices.Count; vI++) {
             Vector2 v0 = vertices[vI - 1];
             Vector2 v1 = vertices[vI % vertices.Count];
@@ -157,7 +171,7 @@ public static class MeshTriangulation {
                 continue;
 
 
-            if (MathUtils.DoLinesIntersect(p0, p1, v0, v1, out _))
+            if (MathUtils.LinesIntersectionPoint2Points(p0, p1, v0, v1, out _))
                 return true;
         }
 
@@ -168,7 +182,7 @@ public static class MeshTriangulation {
             if (p0 == v0 || p1 == v0 || p0 == v1 || p1 == v1)
                 continue;
 
-            if (MathUtils.DoLinesIntersect(p0, p1, v0, v1, out _))
+            if (MathUtils.LinesIntersectionPoint2Points(p0, p1, v0, v1, out _))
                 return true;
         }
 

@@ -1,5 +1,6 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using SimpleGL.Util;
+using SimpleGL.Util.Extensions;
 using System.Runtime.InteropServices;
 
 namespace SimpleGL.Graphics.GLHandling;
@@ -98,7 +99,7 @@ public static partial class GLHandler {
             ReleaseVbo(vbo);
 
         int vboId = vbo.VboId;
-        ReflectionHelper.SetProperty(vbo, "VboId", -1);
+        ReflectionExtensions.SetProperty(vbo, "VboId", -1);
 
         GL.DeleteBuffer(vboId);
     }

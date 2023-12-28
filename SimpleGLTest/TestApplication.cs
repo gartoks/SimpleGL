@@ -1,5 +1,6 @@
-﻿using OpenTK.Mathematics;
+﻿/*using OpenTK.Mathematics;
 using SimpleGL;
+using SimpleGL.Game.Nodes;
 using SimpleGL.Graphics;
 using SimpleGL.Graphics.Rendering;
 using SimpleGL.Graphics.Textures;
@@ -60,14 +61,14 @@ internal sealed class TestApplication : Application {
         ImageResult image2 = ImageResult.FromStream(fs2, ColorComponents.RedGreenBlueAlpha);
         Texture2 = GraphicsHelper.CreateTexture(image2);
 
-        /*ImageResult image3 = new ImageResult() {
+        *//*ImageResult image3 = new ImageResult() {
             Comp = ColorComponents.RedGreenBlueAlpha,
             SourceComp = ColorComponents.RedGreenBlueAlpha,
             Data = new byte[] { 255, 0, 0, 255,
                                 0, 255, 0, 255,
                                 0, 0, 255, 255,
                                 255, 255, 0, 255,},
-        };*/
+        };*//*
         using FileStream fs3 = new FileStream(Path.Combine("Resources", "TestTex03.png"), FileMode.Open);
         ImageResult image3 = ImageResult.FromStream(fs3, ColorComponents.RedGreenBlueAlpha);
         Texture3 = GraphicsHelper.CreateTexture(image3);
@@ -163,3 +164,4 @@ internal sealed class TestApplication : Application {
             uniform.Set(Matrix4.Identity);
     }
 }
+*/

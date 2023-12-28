@@ -1,6 +1,7 @@
 ﻿using OpenTK.Graphics.OpenGL4;
 using SimpleGL.Graphics.Textures;
 using SimpleGL.Util;
+using SimpleGL.Util.Extensions;
 using StbImageSharp;
 
 namespace SimpleGL.Graphics.GLHandling;
@@ -40,7 +41,7 @@ public static partial class GLHandler {
         //ReleaseTexture(texture);
 
         int texID = texture.TextureId;
-        ReflectionHelper.SetProperty(texture, "TextureId", -1);
+        ReflectionExtensions.SetProperty(texture, "TextureId", -1);
         GL.DeleteTexture(texID);
     }
 

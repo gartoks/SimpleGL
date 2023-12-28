@@ -1,20 +1,22 @@
 ﻿using OpenTK.Mathematics;
+using SimpleGL.Game.Util;
+using SimpleGL.Graphics;
 using SimpleGL.Graphics.Textures;
-using SimpleGL.Util;
+using SimpleGL.ResourceHandling;
 using SimpleGL.Util.Extensions;
 
-namespace SimpleGL.Graphics.Rendering;
-public class Sprite : IDisposable {
+namespace SimpleGL.Game.Nodes;
+public class Sprite : GameNode, IDisposable {
 
-    public Shader Shader {
-        get => VertexArrayObject.Shader;
-        set => VertexArrayObject.Shader = value;
+    public Material Material {
+        get => RenderObject.Material;
+        set => RenderObject.Material = value;
     }
 
     public Texture Texture {
-        get => VertexArrayObject.Textures[0];
+        get => RenderObject.Textures[0];
         set {
-            VertexArrayObject.Textures[0] = value;
+            RenderObject.Textures[0] = value;
 
             float[][] textureCoordinates = value.TextureCoordinates.ToArray();
             for (int y = 0; y < 2; y++) {
@@ -27,27 +29,20 @@ public class Sprite : IDisposable {
         }
     }
 
-    private Mesh Mesh => VertexArrayObject.Mesh;
+    private Mesh? Mesh => RenderObject?.Mesh;
 
-    public Color4 Tint { get; set; }
-
-    public Transform Transform { get; }
-
-    public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler {
-        get => VertexArrayObject.ShaderUniformAssignmentHandler;
-        set => VertexArrayObject.ShaderUniformAssignmentHandler = value;
-    }
-
-    private VertexArrayObject VertexArrayObject { get; }
+    private RenderObject? RenderObject { get; set; }
 
     private bool disposedValue;
 
-    public Sprite(Texture texture, Shader shader) {
-        Tint = Color4.White;
-        Transform = new Transform();
+    public Sprite(Guid id)
+        : base(id) {
+    }
 
+    public Sprite(Texture texture) {
         Mesh mesh = CreateMesh(texture);
-        VertexArrayObject = GraphicsHelper.CreateVertexArrayObject(ResolveShaderVertexAttribute, AssignShaderUniform, shader, mesh, texture);
+
+        RenderObject = new RenderObject(mesh, Material.CreateDefaultMaterial(1));
     }
 
     // override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
@@ -57,21 +52,51 @@ public class Sprite : IDisposable {
     }
 
 
-    public void Render() {
-        VertexArrayObject.Render(Transform.ZIndex);
+    protected override void Render(float dT) {
+        RenderObject?.Render(Transform);
     }
 
-    internal void Render(int zIndex, Action preRenderCallback) {
-        VertexArrayObject.Render(zIndex, preRenderCallback);
+    protected override GameNodeData Serialize() {
+        GameNodeData data = base.Serialize();
+
+        GameNodeData spriteData = new GameNodeData();
+        data.Set(nameof(Sprite), spriteData);
+
+        spriteData.Set(nameof(Texture), Texture.Key);
+        spriteData.Set(nameof(Material), Material.GetType().AssemblyQualifiedName!);
+        spriteData.Set(nameof(Material.Shader), Material.Shader.Key);
+
+        return data;
     }
 
-    private VertexAttribute ResolveShaderVertexAttribute(VertexAttribute shaderAttribute, IEnumerable<VertexAttribute> meshAttributes) {
-        return meshAttributes.Single(ma => shaderAttribute.Name.Split("_")[1] == ma.Name);
+    protected override void Deserialize(GameNodeData data) {
+        if (!data.IsData(nameof(Sprite)))
+            return;
+
+        GameNodeData spriteData = data.GetData(nameof(Sprite));
+
+        string textureKey = spriteData.GetValue(nameof(Texture));
+        if (!ResourceManager.TextureLoader.TryGetResource(textureKey, out Texture2D? texture))
+            throw new Exception($"Texture '{textureKey}' not found");
+
+        string shaderKey = spriteData.GetValue(nameof(Material.Shader));
+        if (!ResourceManager.ShaderLoader.TryGetResource(shaderKey, out Shader? shader))
+            throw new Exception($"Shader '{shaderKey}' not found");
+
+        string materialTypeName = spriteData.GetValue(nameof(Material));
+        Type? materialType = Type.GetType(materialTypeName);
+        if (materialType == null)
+            throw new Exception($"Material type '{materialTypeName}' not found");
+
+        Mesh mesh = CreateMesh(texture!);
+        RenderObject = new RenderObject(mesh, Material.CreateDefaultMaterial(1));
+        Material = Material.Create(materialType, shader!);
     }
 
     protected virtual void Dispose(bool disposing) {
         if (!disposedValue) {
             if (disposing) {
+                RenderObject?.Dispose();
                 // dispose managed state (managed objects)
             }
 
@@ -85,20 +110,6 @@ public class Sprite : IDisposable {
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
-    }
-
-
-    public void AssignShaderUniform(Shader shader, ShaderUniform uniform) {
-        string name = uniform.Name;
-
-        if (name == "u_texture0" && uniform.Type == UniformType.Texture2D)
-            uniform.Set(Texture);
-        else if (name == "u_color" && uniform.Type == UniformType.FloatVector4)
-            uniform.Set(Tint);
-        else if (name == "u_viewProjectionMatrix" && uniform.Type == UniformType.Matrix4x4)
-            uniform.Set(Renderer.ActiveRenderer!.ViewProjectionMatrix!.Value);
-        else if (name == "u_modelMatrix" && uniform.Type == UniformType.Matrix4x4)
-            uniform.Set(Transform.TransformationMatrix);
     }
 
     private static Mesh CreateMesh(Texture texture) {

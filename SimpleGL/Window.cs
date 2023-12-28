@@ -1,6 +1,7 @@
 ﻿using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
+using SimpleGL.Game;
 using SimpleGL.Graphics;
 using SimpleGL.Graphics.GLHandling;
 using System.ComponentModel;
@@ -30,7 +31,7 @@ public sealed class Window : GameWindow {
     protected override void OnUnload() {
         base.OnUnload();
 
-        Application.Instance.OnRenderStop();
+        //Application.Instance.OnRenderStop();
     }
 
     protected override void OnRenderFrame(FrameEventArgs args) {
@@ -39,7 +40,7 @@ public sealed class Window : GameWindow {
         GLHandler.ProcessQueue();
 
         if (!IsStarted) {
-            Application.Instance.OnRenderStart();
+            //Application.Instance.OnRenderStart();
             IsStarted = true;
         }
 
@@ -62,7 +63,7 @@ public sealed class Window : GameWindow {
             TpsCounter = 0;
         }
 
-        Application.Instance.OnRender(deltaTime);
+        GameScene.Render(deltaTime);
 
         SwapBuffers();
     }

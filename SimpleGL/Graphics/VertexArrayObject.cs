@@ -1,66 +1,9 @@
 ﻿using SimpleGL.Graphics.GLHandling;
-using SimpleGL.Graphics.Textures;
-using SimpleGL.Util;
 
 namespace SimpleGL.Graphics;
 public sealed class VertexArrayObject : IDisposable {
-    private ShaderVertexAttributeResolver AttributeResolver { get; }
-    public ShaderUniformAssignmentHandler ShaderUniformAssignmentHandler { get; set; }
-
-    private Shader _Shader { get; set; }
-    public Shader Shader {
-        get => _Shader;
-        set {
-            if (value == null) {
-                Log.WriteLine($"Cannot assign shader to renderable. Shader is null.");
-                return;
-            }
-
-            if (!value.IsCompiled) {
-                Log.WriteLine($"Cannot assign shader to renderable. Shader is not compiled.");
-                return;
-            }
-
-            _Shader = value;
-            IsShaderDirty = true;
-        }
-    }
-
-    private Mesh _Mesh { get; set; }
-    public Mesh Mesh {
-        get => _Mesh;
-        set {
-            if (value == null) {
-                Log.WriteLine($"Cannot assign mesh to renderable. Mesh is null.");
-                return;
-            }
-
-            if (Mesh != null) {
-                Mesh.OnMeshVertexDataChanged -= OnMeshVertexDataChanged;
-            }
-
-            _Mesh = value;
-            Mesh.OnMeshVertexDataChanged += OnMeshVertexDataChanged;
-            IsMeshDirty = true;
-        }
-    }
-
-    private Texture[] _Textures { get; set; }
-    public Texture[] Textures {
-        get => _Textures;
-        set {
-            if (value == null)
-                value = new Texture[0];
-
-            _Textures = value;
-        }
-    }
-
-
     public VertexBufferObject VertexBufferObject { get; private set; }
     public ElementBufferObject ElementBufferObject { get; private set; }
-
-    private Dictionary<ShaderVertexAttribute, VertexAttribute> ResolvedMeshAttributes { get; }
 
     internal int VaoId { get; }
     public bool IsBound => GLHandler.IsVaoBound(this);
@@ -68,48 +11,8 @@ public sealed class VertexArrayObject : IDisposable {
     public bool IsDisposed => VaoId <= 0;
     private bool disposedValue;
 
-    private bool IsMeshDirty { get; set; }
-    private bool IsShaderDirty { get; set; }
-    private bool IsDataDirty { get; set; }
-
-    internal VertexArrayObject(
-        int vaoId,
-        ShaderVertexAttributeResolver attributeResolver,
-        ShaderUniformAssignmentHandler shaderUniformAssignmentHandler,
-        Shader shader,
-        Mesh mesh,
-        Texture[] textures) {
-
-        if (attributeResolver == null) {
-            Log.WriteLine($"Cannot create renderable, attributeResolver is null.");
-            return;
-        }
-
-        if (shaderUniformAssignmentHandler == null) {
-            Log.WriteLine($"Cannot create renderable, shaderUniformAssignmentHandler is null.");
-            return;
-        }
-
-        if (shader == null) {
-            Log.WriteLine($"Cannot create renderable, shader is null.");
-            return;
-        }
-
-        if (mesh == null) {
-            Log.WriteLine($"Cannot create renderable, mesh is null.");
-            return;
-        }
-
-        ResolvedMeshAttributes = new Dictionary<ShaderVertexAttribute, VertexAttribute>();
-
+    internal VertexArrayObject(int vaoId) {
         VaoId = vaoId;
-
-        AttributeResolver = attributeResolver;
-        ShaderUniformAssignmentHandler = shaderUniformAssignmentHandler;
-
-        Textures = textures;
-        Shader = shader;
-        Mesh = mesh;
     }
 
     ~VertexArrayObject() {
@@ -117,74 +20,38 @@ public sealed class VertexArrayObject : IDisposable {
         Dispose(disposing: false);
     }
 
-    public void Render(int zIndex = 0, Action? preRenderCallback = null) {
-        Clean();
+    internal void UpdateData(Shader shader, float[] vboData, int[] indices) {
+        GLHandler.BindVao(this);
+        GLHandler.DeleteVbo(VertexBufferObject);
+        GLHandler.DeleteEbo(ElementBufferObject);
 
-        Renderer.ActiveRenderer?.Render(this, zIndex, preRenderCallback);
+        VertexBufferObject = GLHandler.CreateVbo(vboData, eBufferType.Dynamic);
+        VertexBufferObject.Bind();
+
+        shader.EnableVertexAttributes();
+        shader.AssignVertexAttributePointers();
+
+        ElementBufferObject = GLHandler.CreateEBO(indices, eBufferType.Static);
+        VertexBufferObject.Release();
+        GLHandler.ReleaseVao(this);
     }
 
-    internal void AssignShaderUniforms() {
-        foreach (ShaderUniform uniform in Shader.Uniforms.Values)
-            ShaderUniformAssignmentHandler(Shader, uniform);
+    internal void UpdateData(Shader shader, float[] vboData) {
+        GLHandler.BindVao(this);
+        VertexBufferObject.Bind();
+        VertexBufferObject.SetData(vboData);
+        shader.EnableVertexAttributes();
+        shader.AssignVertexAttributePointers();
+        VertexBufferObject.Release();
+        GLHandler.ReleaseVao(this);
     }
 
-    private void Clean() {
-        if (IsMeshDirty) {
-            Shader.Bind();
-            GLHandler.BindVao(this);
-            GLHandler.DeleteVbo(VertexBufferObject);
-            GLHandler.DeleteEbo(ElementBufferObject);
-            ResolvedMeshAttributes.Clear();
-            foreach (ShaderVertexAttribute shaderAttribute in Shader.Attributes.Values) {
-                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes.Values);
-                ResolvedMeshAttributes.Add(shaderAttribute, resolvedMeshAttribute);
-            }
-            float[] vboData = Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values);
-            VertexBufferObject = GLHandler.CreateVbo(vboData, eBufferType.Dynamic);
-            VertexBufferObject.Bind();
-            Shader.EnableVertexAttributes();
-            Shader.AssignVertexAttributePointers();
-            ElementBufferObject = GLHandler.CreateEBO(Mesh.Indices.ToArray(), eBufferType.Static);
-            VertexBufferObject.Release();
-            GLHandler.ReleaseVao(this);
-            Shader.Release();
-
-            IsMeshDirty = false;
-            IsShaderDirty = false;
-            IsDataDirty = false;
-        } else if (IsShaderDirty) {
-
-            Shader.Bind();
-            GLHandler.BindVao(this);
-            ResolvedMeshAttributes.Clear();
-            foreach (ShaderVertexAttribute shaderAttribute in Shader.Attributes.Values) {
-                VertexAttribute resolvedMeshAttribute = AttributeResolver(shaderAttribute, Mesh.VertexAttributes.Values);
-                ResolvedMeshAttributes.Add(shaderAttribute, resolvedMeshAttribute);
-            }
-            VertexBufferObject.Bind();
-            VertexBufferObject.SetData(Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values));
-            Shader.EnableVertexAttributes();
-            Shader.AssignVertexAttributePointers();
-            VertexBufferObject.Release();
-            GLHandler.ReleaseVao(this);
-            Shader.Release();
-
-            IsShaderDirty = false;
-            IsDataDirty = false;
-        } else if (IsDataDirty) {
-
-            GLHandler.BindVao(this);
-            VertexBufferObject.Bind();
-            VertexBufferObject.SetData(Mesh.GetInterleavedVertexData(ResolvedMeshAttributes.Values));
-            VertexBufferObject.Release();
-            GLHandler.ReleaseVao(this);
-
-            IsDataDirty = false;
-        }
-    }
-
-    private void OnMeshVertexDataChanged(Mesh mesh) {
-        IsDataDirty = true;
+    internal void UpdateData(float[] vboData) {
+        GLHandler.BindVao(this);
+        VertexBufferObject.Bind();
+        VertexBufferObject.SetData(vboData);
+        VertexBufferObject.Release();
+        GLHandler.ReleaseVao(this);
     }
 
     private void Dispose(bool disposing) {

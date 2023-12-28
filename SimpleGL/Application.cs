@@ -2,6 +2,7 @@
 using SimpleGL.Graphics.GLHandling;
 using SimpleGL.Util;
 using SimpleGL.Util.ThreadBases;
+using System.Globalization;
 
 namespace SimpleGL;
 
@@ -31,15 +32,16 @@ public abstract class Application {
         if (State != eApplicationState.NotInitialized)
             throw new InvalidOperationException("Cannot initialize application while it is running");
 
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
         Instance = app;
         State = eApplicationState.Initialized;
 
         Window.UpdateFrequency = app.TargetFramesPerSecond;
         GLHandler.Initialize();
 
-        //ThreadManager.RegisterGameThread(new WindowThreadBase(Window));
-        //ThreadManager.RegisterGameThread(new GLThreadBase(Window, Instance.FramesPerSecond));
         ThreadManager.RegisterGameThread(new UpdateThreadBase(Instance.TargetUpdatesPerSecond));
+        ThreadManager.RegisterGameThread(new ResourceThreadBase(Instance.TargetResourceOperationsPerSecond));
 
         Instance.OnInitialize();
     }
@@ -70,19 +72,13 @@ public abstract class Application {
 
     private int TargetFramesPerSecond { get; }
     private int TargetUpdatesPerSecond { get; }
+    private int TargetResourceOperationsPerSecond { get; }
 
-    public Application(int targetFramesPerSecond, int targetUpdatesPerSecond) {
+    public Application(int targetFramesPerSecond, int targetUpdatesPerSecond, int targetResourceOperationsPerSecond) {
         TargetFramesPerSecond = targetFramesPerSecond;
         TargetUpdatesPerSecond = targetUpdatesPerSecond;
+        TargetResourceOperationsPerSecond = targetResourceOperationsPerSecond;
     }
 
     protected virtual void OnInitialize() { }
-
-    public abstract void OnUpdateStart();
-    public abstract void OnUpdate(float deltaTime);
-    public abstract void OnUpdateStop();
-
-    public abstract void OnRenderStart();
-    public abstract void OnRender(float deltaTime);
-    public abstract void OnRenderStop();
 }

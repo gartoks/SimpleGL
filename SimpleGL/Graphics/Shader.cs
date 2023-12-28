@@ -5,6 +5,7 @@ using SimpleGL.Util;
 
 namespace SimpleGL.Graphics;
 public sealed class Shader : IEquatable<Shader?>, IDisposable {
+    public string Key { get; }
     private string VertexShaderSource { get; }
     private string FragmentShaderSource { get; }
     //internal string geometryShaderSource;
@@ -21,7 +22,8 @@ public sealed class Shader : IEquatable<Shader?>, IDisposable {
 
     private bool disposedValue;
 
-    internal Shader(string vertexShaderSource, string fragmentShaderSource, int programHandle, Dictionary<string, ShaderUniform> uniforms, Dictionary<string, ShaderVertexAttribute> attributes, int stride) {
+    internal Shader(string key, string vertexShaderSource, string fragmentShaderSource, int programHandle, Dictionary<string, ShaderUniform> uniforms, Dictionary<string, ShaderVertexAttribute> attributes, int stride) {
+        Key = key;
         VertexShaderSource = vertexShaderSource;
         FragmentShaderSource = fragmentShaderSource;
         ProgramHandle = programHandle;

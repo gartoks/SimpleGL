@@ -21,8 +21,11 @@ public static partial class GLHandler {
         internal set {
             GL.Viewport(value.Min.X, value.Min.Y, value.Size.X, value.Size.Y);
             _Viewport = value;
+
+            ViewportChanged?.Invoke();
         }
     }
+    public static event Action ViewportChanged;
 
     public static eBlendMode BlendMode {
         set => BlendFunctions = GraphicUtils.ModeToFunctions(value);

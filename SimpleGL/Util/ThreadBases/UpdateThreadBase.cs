@@ -1,4 +1,9 @@
-﻿namespace SimpleGL.Util.ThreadBases;
+﻿using SimpleGL.Audio;
+using SimpleGL.Files;
+using SimpleGL.Game;
+using System.Globalization;
+
+namespace SimpleGL.Util.ThreadBases;
 internal sealed class UpdateThreadBase : ThreadBase {
     public const string NAME = "UpdateThread";
 
@@ -7,14 +12,27 @@ internal sealed class UpdateThreadBase : ThreadBase {
     }
 
     protected override void OnStart() {
-        Application.Instance.OnUpdateStart();
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+
+        FileManager.Initialize();
+
+        AudioManager.Initialize();
+        AudioManager.Load();
+
+        GameScene.Initialize();
+
+        //Application.Instance.OnUpdateStart();
     }
 
     protected override void Run(float deltaTime) {
-        Application.Instance.OnUpdate(deltaTime);
+        GameScene.Update(deltaTime);
     }
 
     protected override void OnStop() {
-        Application.Instance.OnUpdateStop();
+
+        AudioManager.Unload();
+
+        FileManager.Unload();
+        //Application.Instance.OnUpdateStop();
     }
 }

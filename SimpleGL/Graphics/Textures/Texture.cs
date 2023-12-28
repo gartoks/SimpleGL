@@ -3,6 +3,7 @@ using SimpleGL.Graphics.GLHandling;
 
 namespace SimpleGL.Graphics.Textures;
 public abstract class Texture : IDisposable {
+    public virtual string Key { get; }
     public int Width { get; }
     public int Height { get; }
 
@@ -54,7 +55,8 @@ public abstract class Texture : IDisposable {
 
     public abstract Box2 TextureCoordinates { get; }
 
-    protected internal Texture(int width, int height, int textureId) {
+    protected internal Texture(string key, int width, int height, int textureId) {
+        Key = key;
         Width = width;
         Height = height;
         TextureId = textureId;

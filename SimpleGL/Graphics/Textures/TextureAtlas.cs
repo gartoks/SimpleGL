@@ -5,8 +5,8 @@ namespace SimpleGL.Graphics.Textures;
 public sealed class TextureAtlas : Texture2D {
     private IReadOnlyDictionary<string, Box2i> SubTextureBounds { get; }
 
-    public TextureAtlas(ImageResult image, int textureId, IReadOnlyDictionary<string, Box2i> subTextureBounds)
-        : base(image, textureId) {
+    public TextureAtlas(string key, ImageResult image, int textureId, IReadOnlyDictionary<string, Box2i> subTextureBounds)
+        : base(key, image, textureId) {
 
         SubTextureBounds = subTextureBounds;
     }
@@ -18,7 +18,7 @@ public sealed class TextureAtlas : Texture2D {
         if (!found)
             return false;
 
-        texture = new SubTexture(this, bounds);
+        texture = new SubTexture(subTextureName, this, bounds);
         return true;
     }
 }
